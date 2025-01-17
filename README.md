@@ -12,8 +12,8 @@ Automate the process of Brute Forcing the SnapChat My Eyes Only PinCode.
 - This script automates the process of recovering `My Eyes Only` PIN Codes from SnapChat app.
 
 ## Prerequisites
-- Android device with USB debugging enabled (and enable it form Developer options and you can enable Developer options by tapping the build number 7 times from Deive Settings)
-- Android device with Sanpchat installed (and you know your SnapChat accouts password with My Eyes Only Smart Backup feature enabled)
+- Android device with USB debugging enabled (and enable it form Developer options and you can enable Developer options by tapping the build number 7 times from Device Settings)
+- Android device with Sanpchat installed (and you know your SnapChat accouts password with Memories Smart Backup feature enabled)
 - A PC with working internet connection
 
 ## Usage
@@ -31,7 +31,7 @@ This script was tested on an Android device running Android 14 with AOSP with Sn
 v13.23.0.38
 
 ## Saftey!
-After My Eyes Only PinCode Recovery Complite, Please disabled Developer options from Device Settings. `nor uninstall SnapChat Debug APK and install SnapChat Release APK form Google PlayStore."
+After My Eyes Only PinCode Recovery Complite, Please disabled Developer options from Device Settings. or uninstall SnapChat Debug APK and install SnapChat Release APK form Google PlayStore."
 
 ## Dependencies
 ["Chocolatey"](https://github.com/chocolatey/choco) [[Apache 2.0]](https://github.com/chocolatey/choco/blob/develop/LICENSE), ["Java"](https://www.java.com/en/download/) [GFTC], ["Android SDK"](https://developer.android.com/tools) [Apache 2.0], ["Python"](https://www.python.org/downloads/) [PSF / GPL], ["Node"](https://github.com/nodejs/node) [[Apache 2.0]](https://github.com/nodejs/node/blob/main/LICENSE), ["SQLite"](https://github.com/sqlite/sqlite) [[BSD-style]](https://github.com/sqlite/sqlite/blob/master/LICENSE.md), ["Hashcat"](https://github.com/hashcat/hashcat) [[MIT]](https://github.com/hashcat/hashcat/blob/master/docs/license.txt), ["APKEditor"](https://github.com/REAndroid/APKEditor) [[Apache 2.0]](https://github.com/REAndroid/APKEditor/blob/master/LICENSE), ["makeDebuggable"](https://github.com/julKali/makeDebuggable) [Apache 2.0]"

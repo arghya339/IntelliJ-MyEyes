@@ -10,8 +10,8 @@
 # or  ~ Set-ExecutionPolicy Bypass -Scope Process -Force; & "$env:USERPROFILE\Downloads\IntelliJ_MyEyes.ps1" [DEVICE_SERIAL]
 
 # Prerequisites:
-# - Android device with USB debugging enabled (and enable it form Developer options and you can enable Developer options by tapping the build number 7 times from Deive Settings)
-# - Android device with Sanpchat installed (and you know your SnapChat accouts password with My Eyes Only Smart Backup feature enabled)
+# - Android device with USB debugging enabled (and enable it form Developer options and you can enable Developer options by tapping the build number 7 times from Device Settings)
+# - Android device with Sanpchat installed (and you know your SnapChat accouts password with Memories Smart Backup feature enabled)
 # - A PC with working internet connection
 
 # Disclaimer:
@@ -782,6 +782,20 @@ if ($meoriesOutput -eq "/data/data/com.snapchat.android/databases/memories.db") 
     Write-Host "Failed to extract pincode."
   }
 
+  # --- Open a URL in the default browser ---
+  if ($pincode.Count -eq 4) {
+    Write-Host -ForegroundColor Green "☆ Star & -{ Fork me..."
+    Start-Process "https://github.com/arghya339/IntelliJ-MyEyes"
+    Write-Host -ForegroundColor Green "Donation: PayPal/@arghyadeep339"
+    Start-Process "https://www.paypal.com/paypalme/arghyadeep339"
+    Write-Host -ForegroundColor Green "Subscribe: YouTube/@MrPalash360"
+    Start-Process "https://www.youtube.com/channel/UC_OnjACMLvOR9SXjDdp2Pgg/videos?sub_confirmation=1"
+    Write-Host -ForegroundColor Green "Follow: Telegram"
+    Start-Process "https://t.me/MrPalash360"
+    Write-Host -ForegroundColor Green "Join: Telegram"
+    Start-Process "https://t.me/MrPalash360Discussion"
+  }
+
   # Define the ADB tap coordinates for each key
   $CurrentPasscode = @{
     '1' = "adb -s $serial shell input tap 171 970 369 1168"  # MyEyesOnly Enter Current Passcode Key 1
@@ -926,12 +940,6 @@ if ($meoriesOutput -eq "/data/data/com.snapchat.android/databases/memories.db") 
     Write-Host "[i]" -ForegroundColor DarkRed "Invalid input. Please enter Yes or No."
   }
   
-  # --- Open a URL in the default browser ---
-  if ($pincode.Count -eq 4) {
-  Write-Host -ForegroundColor Green "☆ Star & -{ Fork me..."
-  Start-Process "https://github.com/arghya339/IntelliJ-MyEyes"
-  }
-  
   # After Brute force meo pin remove unnecessary files
   Remove-Item -Path $potfile -Force
   Remove-Item -Path $hashed_passcode_file -Force
@@ -962,12 +970,14 @@ $userInput = Write-ColoredPrompt -Message "[?]" -ForegroundColor Yellow -PromptM
 if ($userInput -in @("Yes", "yes", "Y", "y")) {
 
   clear
-  Write-Host "[~]" -ForegroundColor White "Rerunning IntelliJ-MyEyes script..."
+  Write-Host "[~]" -ForegroundColor White "Rerunning IntelliJ MyEyes script..."
   Set-ExecutionPolicy Bypass -Scope Process -Force; & $fullScriptPath $serial
   break  # Exit the loop after rerunning
 
 } elseif ($userInput -in @("No", "no", "N", "n")) {
   Write-Host "[i]" -ForegroundColor Blue "Proceeding..."
+  Remove-Item -Path "$meo" -Recurse -Force
+  Remove-Item -Path "$fullScriptPath" -Force
 } else {
   Write-Host "[i]" -ForegroundColor DarkRed "Invalid input. Please enter Yes or No."
 }
@@ -976,7 +986,7 @@ if ($userInput -in @("Yes", "yes", "Y", "y")) {
 Write-Host "[x]" -ForegroundColor Red "Saftey! After My Eyes Only PinCode Recovery Complite, Please disabled Developer options from Device Settings. `nor uninstall SnapChat Debug APK and install SnapChat Release APK form Google PlayStore."
 Write-Host "[i]" -ForegroundColor Blue "Methods to Turn Off USB Debugging Manually via Device Settings: Go to 'Settings' > Developer options > Toggle off 'USB Debugging'."
 # --- Prompt the user for input ---
-$userInput = Write-ColoredPrompt -Message "[?]" -ForegroundColor Yellow -PromptMessage "Are you want uninstall SnapChat Debug APK and install SnapChat Release APK form Google PlayStore? (Yes/No)"
+$userInput = Write-ColoredPrompt -Message "[?]" -ForegroundColor Yellow -PromptMessage "Are you want install SnapChat Release APK form Google PlayStore? (Yes/No)"
 # Check the user's input
 if ($userInput -in @("Yes", "yes", "Y", "y")) {
   Write-Host "[~]" -ForegroundColor White "Proceeding..."
