@@ -52,8 +52,8 @@ hashcat --attack-method 3200 --attack-mode 3 meohash.txt "?d?d?d?d"
 - Use it responsibly and at your own risk.
 
 ## Devoloper info
-- Powered by [Hashcat](github.com/hashcat/hashcat)
-- Inspired by [meobrute](github.com/sdushantha/meobrute)
-- Developer: [@arghya339](github.com/arghya339)
+- Powered by [Hashcat](https://github.com/hashcat/hashcat)
+- Inspired by [meobrute](https://github.com/sdushantha/meobrute)
+- Developer: [@arghya339](https://github.com/arghya339)
 
 ## Happy Cracking!
