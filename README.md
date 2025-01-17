@@ -17,7 +17,7 @@ Automate the process of Brute Forcing the SnapChat My Eyes Only PinCode.
 - A PC with working internet connection
 
 ## Usage
-- Open PowerShell Terminal (Admin) and run the script with the following command:
+- Open [PowerShell](https://github.com/PowerShell/PowerShell) Terminal (Admin) and run the script with the following command:
 
 ```
 Invoke-WebRequest -Uri https://raw.githubusercontent.com/arghya339/IntelliJ-MyEyes/refs/heads/master/IntelliJ_MyEyes.ps1 -OutFile "$env:USERPROFILE\Downloads\IntelliJ_MyEyes.ps1"
