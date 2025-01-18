@@ -109,11 +109,23 @@ $signed_apkFilePath = Join-Path $meo "snapchat_signed.apk"  # snapchat_signed.ap
 $debug_apkFilePath = Join-Path $meo "snapchat_debug.apk"  # snapchat_debug.apk file path
 
 # --- Check for dependencies ---
-foreach ($dependency in @("choco", "java", "android-sdk", "python", "hashcat"<#, "7z"#>)) {
+foreach ($dependency in @("choco", "java", "jdk", "android-sdk", "python", "hashcat"<#, "7z"#>)) {
   $installed = $false
   if ($dependency -eq "java") {
     # Custom check for java installation
     if (Test-Path "C:\Program Files\Java\jdk-17\bin") {
+        $installed = $true
+    }
+  } else {
+    # General check for executables
+    if (Get-Command $dependency -ErrorAction SilentlyContinue) {
+        $installed = $true
+    }
+  }
+
+  if ($dependency -eq "jdk") {
+    # Custom check for java 8 installation
+    if (Test-Path "C:\Program Files\AdoptOpenJDK\jdk-8.0.292.10-hotspot\bin") {
         $installed = $true
     }
   } else {
@@ -229,6 +241,20 @@ foreach ($dependency in @("choco", "java", "android-sdk", "python", "hashcat"<#,
               # [Environment]::SetEnvironmentVariable("Path", $path, "Machine")
               # winget uninstall Oracle.JDK.17  # Uninstall oracle jdk using winget
               # winget uninstall Microsoft.OpenJDK.17  # Uninstall microsoft jdk using winget
+          }
+          "jdk" {
+              # install java 8 using winget for sdkmanager required for downloading build-tools to use apksigner
+              winget install AdoptOpenJDK.OpenJDK.8 --force --silent
+              # Verify Installation
+              if (-not (Test-Path "C:\Program Files\AdoptOpenJDK\jdk-8.0.292.10-hotspot\bin")) {
+                Write-Host "[x] AdoptOpenJDK.OpenJDK.8 installation failed. Please install it manually." -ForegroundColor Red
+                exit 1
+              }
+              Write-Host "[+] AdoptOpenJDK.OpenJDK.8 installed successfully." -ForegroundColor Green
+              # Add AdoptOpenJDK.OpenJDK.8 path in environment variables
+              $path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";C:\Program Files\AdoptOpenJDK\jdk-8.0.292.10-hotspot\bin"
+              [Environment]::SetEnvironmentVariable("Path", $path, "Machine")
+              $env:JAVA_HOME="C:\Program Files\AdoptOpenJDK\jdk-8.0.292.10-hotspot"
           }
           "android-sdk" {
               # Install SDK (SDK, PlatformTools) using Choco due to winget installs only the platform tools (adb and fastboot) [Apache 2.0]
@@ -583,6 +609,25 @@ if ($databasesOutput -ne "/data/data/com.snapchat.android/databases") {
         Write-Host "[+]" -ForegroundColor Green "All necessary APKs are present in $pullDir dir."
       }
       
+      if ($apksPath -match "^/data/app(/~[^/]+)?/com\.snapchat\.android.*$") {
+        Write-Host "[~]" -ForegroundColor White "Pulling APK to path: $pullDir"
+        try {
+          adb -s $serial pull "$apksPath/base.apk" $meo > $null 2>&1  # to discard output.
+        } catch {
+          Write-Host "[x]" -ForegroundColor Red "Failed to APK. Error: $_"
+        }
+      } elseif ($apksPath -notmatch "^/data/app(/~[^/]+)?/com\.snapchat\.android.*$") {
+      Write-Host "[x]" -ForegroundColor Red "APK path is empty or not specified. Cannot proceed with pulling APK."
+      }
+      $requiredApk = @((Join-Path $meo "base.apk"))
+      $missingApk = $requiredApk | Where-Object { -not (Test-Path $_)}
+      Write-Host "[i] Missing APKs: $($missingApk -join ', ')" -ForegroundColor Cyan
+      if ($missingApk.Count -eq 1) {
+        Write-Host "[x]" -ForegroundColor Red "Missing the following APK: $($missingApk -join ', ')"
+      } else {
+        Write-Host "[+]" -ForegroundColor Green "SnapChat 'base.apk' are present in $meo dir."
+      }
+
       # --- Create the .zip archive of the pulled APKs ---
       if ($missingApks.Count -eq 0) {
         Write-Host "[~]" -ForegroundColor White "Creating a zip archive of the pulled APKs..."
@@ -638,7 +683,13 @@ if ($databasesOutput -ne "/data/data/com.snapchat.android/databases") {
         # keytool -genkey -v -storetype pkcs12 -keystore (Join-Path $meo "ks.keystore") -alias ReVancedKey -keyalg RSA -keysize 2048 -validity 36050 -dname "CN=arghya339, OU=Android Development Team, O=ReVanced, L=Kolkata, S=West Bengal, C=In" -storepass 123456 -keypass 123456
         keytool -genkey -v -storetype JKS -keystore (Join-Path $meo "ks.keystore") -alias ReVancedKey -keyalg RSA -keysize 2048 -validity 36050 -dname "CN=arghya339, OU=Android Development Team, O=ReVanced, L=Kolkata, S=West Bengal, C=In" -storepass 123456 -keypass 123456
       }
-    
+      
+      # Download build-tool using sdkmanager that comes with android-sdk and using java 8 with set env variable
+      $env:JAVA_HOME="C:\Program Files\AdoptOpenJDK\jdk-8.0.292.10-hotspot"
+      cd C:\Android\android-sdk\tools\bin; sdkmanager.bat "build-tools;34.0.0"
+      $env:Path += ";C:\Android\android-sdk\build-tools\34.0.0"
+      cd $env:USERPROFILE
+
       # --- Signed snapchat.apk using apksigner.jar that comes with Google.SDK and using java 17 ---
       if (Test-Path $apkFilePath) {
         Write-Host "[~]" -ForegroundColor White "Signing the SnapChat APK..."
@@ -652,26 +703,21 @@ if ($databasesOutput -ne "/data/data/com.snapchat.android/databases") {
       } else {
         Write-Host "[x]" -ForegroundColor Red "Failed to signed the SnapChat APK."
       }
-
-      if ($apksPath -match "^/data/app(/~[^/]+)?/com\.snapchat\.android.*$") {
-        Write-Host "[~]" -ForegroundColor White "Pulling APK to path: $pullDir"
-        try {
-          adb -s $serial pull "$apksPath/base.apk" $meo > $null 2>&1  # to discard output.
-        } catch {
-          Write-Host "[x]" -ForegroundColor Red "Failed to APK. Error: $_"
-        }
-      } elseif ($apksPath -notmatch "^/data/app(/~[^/]+)?/com\.snapchat\.android.*$") {
-      Write-Host "[x]" -ForegroundColor Red "APK path is empty or not specified. Cannot proceed with pulling APK."
-      }
-      $requiredApk = @((Join-Path $meo "base.apk"))
-      $missingApk = $requiredApk | Where-Object { -not (Test-Path $_)}
-      Write-Host "[i] Missing APKs: $($missingApk -join ', ')" -ForegroundColor Cyan
-      if ($missingApk.Count -eq 1) {
-        Write-Host "[x]" -ForegroundColor Red "Missing the following APK: $($missingApk -join ', ')"
-      } else {
-        Write-Host "[+]" -ForegroundColor Green "SnapChat 'base.apk' are present in $meo dir."
-      }
     
+      # --- Signed snapchat base.apk using apksigner.jar that comes with Google.SDK and using java 17 ---
+      if (Test-Path $meo\base.apk) {
+        Write-Host "[~]" -ForegroundColor White "Signing the SnapChat base APK..."
+        apksigner sign --ks $meo\ks.keystore --ks-key-alias ReVancedKey --ks-pass pass:123456 --key-pass pass:123456 --out $signed_apkFilePath $meo\base.apk
+      } elseif (!(Test-Path $meo\base.apk)) {
+        Write-Host "[i]" -ForegroundColor Blue "snapchat base.apk not found."
+      } elseif (Test-Path $signed_apkFilePath) {
+        Write-Host "[+]" -ForegroundColor Green "SnapChat base APK signed successfully: $signed_apkFilePath"
+        Remove-Item "$moe\snapchat_signed.apk.idsig" -Force
+        Remove-Item $meo\base.apk -Force
+      } else {
+        Write-Host "[x]" -ForegroundColor Red "Failed to signed the SnapChat base APK."
+      }
+
     # --- download makeDebuggable.py ---
     if (!(Test-Path (Join-Path $meo "makeDebuggable.py"))) {
       Write-Host "[~]" -ForegroundColor White "Downloading makeDebuggable.py..."
@@ -688,21 +734,11 @@ if ($databasesOutput -ne "/data/data/com.snapchat.android/databases") {
     } else {
       Write-Host "[x]" -ForegroundColor Red "Failed to Build the SnapChat DeBug APK using SnapChat apk."
     }
-    
-    if (Test-Path $meo\base.apk) {
-      Write-Host "[~]" -ForegroundColor White "Building the SnapChat Debug APK..."
-      python $meo\makeDebuggable.py apk $meo\base.apk $debug_apkFilePath $meo\ks.keystore ReVancedKey 123456 > $null 2>&1  # to discard output.      
-    } elseif (!(Test-Path $moe\base.apk)) {
-      Write-Host "[i]" -ForegroundColor Blue "SnapChat 'base.apk' not found."
-    } else {
-      Write-Host "[x]" -ForegroundColor Red "Failed to Build the SnapChat DeBug APK using SnapChat 'base.apk'."
-    }
 
     if (Test-Path $debug_apkFilePath) {
       Write-Host "[+]" -ForegroundColor Green "SnapChat Debug APK built successfully: $debug_apkFilePath"
       
       Remove-Item -Path $signed_apkFilePath -Force 2>$null
-      Remove-Item -Path "$meo\base.apk" -Force 2>$null
       Remove-Item -Path "$meo\snapchat_debug.apk.idsig" -Force 2>$null
       Remove-Item -Path "$meo\snapchat_debug.apk.tmp" -Force 2>$null
       
@@ -841,7 +877,7 @@ if ($meoriesOutput -eq "/data/data/com.snapchat.android/databases/memories.db") 
   # Push-Location "$meo\hashcat-6.2.6"  # Change directory to hashcat-6.2.6
   try {
     # Capture the entire output and extract the pincode
-    $hashcatOutput = hashcat.exe -m 3200 -a 3 $hashed_passcode_file "?d?d?d?d" --quiet --potfile-path $potfile --force 2>&1 | Out-String
+    $hashcatOutput = C:\tools\hashcat-6.2.6\hashcat.exe -m 3200 -a 3 $hashed_passcode_file "?d?d?d?d" --quiet --potfile-path $potfile --force 2>&1 | Out-String
     # Filter out the specific error message
     if ($hashcatOutput -notmatch "hiprtcCompileProgram is missing from HIPRTC shared library.") {
         Write-Host $hashcatOutput
