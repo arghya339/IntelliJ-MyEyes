@@ -688,7 +688,7 @@ if ($databasesOutput -ne "/data/data/com.snapchat.android/databases") {
       if  (!(Test-Path (Join-Path $meo "ks.keystore"))) {
         Write-Host "[~]" -ForegroundColor White "Creating a keystore for signed apk..."
         # keytool -genkey -v -storetype pkcs12 -keystore (Join-Path $meo "ks.keystore") -alias ReVancedKey -keyalg RSA -keysize 2048 -validity 36050 -dname "CN=arghya339, OU=Android Development Team, O=ReVanced, L=Kolkata, S=West Bengal, C=In" -storepass 123456 -keypass 123456
-        keytool -genkey -v -storetype JKS -keystore (Join-Path $meo "ks.keystore") -alias ReVancedKey -keyalg RSA -keysize 2048 -validity 36050 -dname "CN=arghya339, OU=Android Development Team, O=ReVanced, L=Kolkata, S=West Bengal, C=In" -storepass 123456 -keypass 123456
+        keytool -genkey -v -storetype JKS -keystore (Join-Path $meo "ks.keystore") -alias ReVancedKey -keyalg RSA -keysize 2048 -validity 36050 -dname "CN=arghya339, OU=Android Development Team, O=ReVanced, L=Kolkata, S=West Bengal, C=In" -storepass 123456 -keypass 123456 > $null 2>&1  # to discard output.
       }
       
       # Download build-tool using sdkmanager that comes with android-sdk and using java 8 with set env variable
