@@ -128,25 +128,64 @@ foreach ($dependency in @("choco", "java", "android-sdk", "python", "hashcat"<#,
 
       switch ($dependency) {
           "choco" {
+              <#  
+              # Install Chocolatey using PS
+              Write-Host "[!] Attempting to install Chocolatey..."
+              $result = winget install Chocolatey.Chocolatey --silent --force | Out-String
+              if ($result -notmatch "Successfully installed") {
+                Write-Host "[x] Winget installation failed. Attempting manual installation..." -ForegroundColor Yellow
+                Set-ExecutionPolicy Bypass -Scope Process -Force;
+                [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072;
+                iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+              }
+              if (-not (Test-Path "C:\ProgramData\chocolatey\bin\choco.exe")) {
+                Write-Host "[x] Chocolatey installation failed. Please install it manually." -ForegroundColor Red
+                exit 1
+              }
+              Write-Host "[+] Chocolatey installed successfully." -ForegroundColor Green
+              #>
               # Install Chocolatey using Winget [Apache 2.0]
-              winget install Chocolatey.Chocolatey --silent --force
-              # choco --version
-              # Remove-Item -Recurse -Force C:\ProgramData\chocolatey  # Uninstall Chocolatey using ps
-              # Uninstall choco using winget
-              # $envPath = [System.Environment]::GetEnvironmentVariable("Path", "Machine") -split ';'
-              # $newPath = $envPath | Where-Object { $_ -notmatch "C:\\ProgramData\\chocolatey" }
-              # [System.Environment]::SetEnvironmentVariable("Path", ($newPath -join ';'), "Machine")
+              Write-Host "[!] Attempting to install Chocolatey using Winget..." -ForegroundColor Yellow
+              $result = winget install Chocolatey.Chocolatey --silent --force | Out-String
+              # choco --version  # check chocolatey version
+              if ($result -notmatch "Successfully installed") {
+                Write-Host "[x] Winget installation failed. Attempting manual installation..." -ForegroundColor Yellow
+                Set-ExecutionPolicy Bypass -Scope Process -Force
+                [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
+                iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+              }
+              # Verify Installation
+              if (-not (Test-Path "C:\ProgramData\chocolatey\bin\choco.exe")) {
+                Write-Host "[x] Chocolatey installation failed. Please install it manually." -ForegroundColor Red
+                exit 1
+              }
+              Write-Host "[+] Chocolatey installed successfully." -ForegroundColor Green
+              # Ensure Chocolatey path is in environment variables
+              Write-Host "[!] Checking environment variables..." -ForegroundColor Yellow
+              $envPath = [System.Environment]::GetEnvironmentVariable("Path", "Machine") -split ';'
+              if (-not ($envPath -contains "C:\ProgramData\chocolatey\bin")) {
+                $envPath += "C:\ProgramData\chocolatey\bin"
+                [System.Environment]::SetEnvironmentVariable("Path", ($envPath -join ';'), "Machine")
+                Write-Host "[+] Chocolatey path added to environment variables." -ForegroundColor Green
+              } else {
+                Write-Host "[!] Chocolatey path already present in environment variables." -ForegroundColor Green
+              }
+              # Remove-Item -Recurse -Force C:\ProgramData\chocolatey  # Uninstall Chocolatey using PS
+              # winget uninstall Chocolatey.Chocolatey  # Uninstall chocolatey using winget
               # Remove-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" -Name "ChocolateyInstall" -ErrorAction SilentlyContinue
           }
           "java" {
               # Install Oracle.JDK.17 using Winget due to latest in winget  # [GFTC]
               winget install Oracle.JDK.17 --silent --force
-              # java -version
-              # install PlatformTools (adb and fastboot) using Winget due to requred PlatformTools only [Apache 2.0]
-              # winget install Google.PlatformTools -y --no-progress
-              $path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";C:\Program Files\Microsoft\jdk-17.0.13.11-hotspot\bin"
+              $path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";C:\Program Files\Java\jdk-17\bin"
               [Environment]::SetEnvironmentVariable("Path", $path, "Machine")
-              # winget uninstall Oracle.JDK.17  # Uninstall jdk using winget
+              # java -version  # check java version
+              # install Microsoft openjdk
+              # winget install Microsoft.OpenJDK.17 --silent --force
+              # $path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";C:\Program Files\Microsoft\jdk-17.0.13.11-hotspot\bin"
+              # [Environment]::SetEnvironmentVariable("Path", $path, "Machine")
+              # winget uninstall Oracle.JDK.17  # Uninstall oracle jdk using winget
+              # winget uninstall Microsoft.OpenJDK.17  # Uninstall microsoft jdk using winget
           }
           "android-sdk" {
               # Install SDK (SDK, PlatformTools) using Choco due to winget installs only the platform tools (adb and fastboot) [Apache 2.0]
@@ -165,31 +204,37 @@ foreach ($dependency in @("choco", "java", "android-sdk", "python", "hashcat"<#,
               [Environment]::SetEnvironmentVariable("Path", $path, "Machine")
               $path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";C:\Android\android-sdk\platform-tools"
               [Environment]::SetEnvironmentVariable("Path", $path, "Machine")
-              # choco uninstall android-sdk  # Uninstall android-sdk using choco
+              # check platform-tools: ~ adb devices
+              # choco uninstall android-sdk -y  # Uninstall android-sdk using choco
+              # Remove-Item -Recurse -Force C:\Android\android-sdk Uninstall android-sdk using PS
+              # winget uninstall Google.PlatformTools #  Uninatall PlatformTools using winget
+              # Remove-Item -Recurse -Force C:\Users\arghy\AppData\Local\Android\Sdk\platform-tools  # Uninatall PlatformTools using PS
           }
           "python" {
               # Install Python using Winget due to outdated in Chocolatey [PSF / GPL]
               winget install Python.Python.3.13 --silent --force
               # python --version
-              # install Python using Chocolatey
-              # choco isntall python -y --no-progress
-              $path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";C:\Python313"
+              $path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";C:\Users\$env:USERPROFILE\AppData\Local\Programs\Python\Python313"
               [Environment]::SetEnvironmentVariable("Path", $path, "Machine")
-              $path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";C:\Python313\Scripts"
+              $path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";C:\Users\$env:USERPROFILE\AppData\Local\Programs\Python\Python313\Scripts"
               [Environment]::SetEnvironmentVariable("Path", $path, "Machine")
               # winget uninstall Python.Python.3.13  # Uninstall Python 3.13 using winget
+              # Remove-Item -Recurse -Force C:\Users\$env:USERPROFILE\AppData\Local\Programs\Python\Python313  # Uninatall Python313 using PS
+              # Remove-Item -Recurse -Force C:\Python312  # Uninatall Python312 using PS
           }
           "hashcat" {
             # Install Hashcat using choco due to its only available in chocolatey [MIT]
             choco install hashcat -y --no-progress
-            # hashcat -V
-            # choco uninstall hashcat  # Uninstall hashcat using choco
+            # C:\tools\hashcat-6.2.6\hashcat.exe -V  # check hashcat version
+            # choco uninstall hashcat -y  # Uninstall hashcat using choco
+            # Remove-Item -Recurse -Force C:\tools\hashcat-6.2.6  # Uninatall Hashcat using PS
           }
           <#"7z" {
-              # Install 7zip using Winget due to latest in Choco
+              # Install 7zip using Winget due to latest in winget
               winget install 7zip.7zip --silent --force
-              # 7z --version
-              # winget uninstall 7zip.7zip  # Uninstall 7zip using winget
+              # 7z --version  # check 7z version
+              # winget uninstall 7zip.7zip  # Uninstall 7zip using 
+              # Remove-Item -Recurse -Force C:\Program Files\7-Zip  # Uninatall 7z using PS
           }#>
       }
 
@@ -1018,7 +1063,7 @@ Write-Host "</>" -ForegroundColor DarkMagenta "Inspired by meobrute (github.com/
 Write-Host "</>" -ForegroundColor DarkMagenta "Developer: @arghya339 (github.com/arghya339)"
 
 # --- External Dependencies ---
-Write-Host "[i]" -ForegroundColor Blue "External Dependencies: "Chocolatey" [Apache 2.0], "Java" [GFTC], "Android SDK" [Apache 2.0], "Python" [PSF / GPL], "Node" [Apache 2.0], "SQLite" [BSD-style], "Hashcat" [MIT], "APKEditor" [Apache 2.0], "makeDebuggable" [Apache 2.0]"
+Write-Host "[i]" -ForegroundColor Blue "External Dependencies: "Chocolatey" [Apache 2.0], "Java" [GFTC], "Android SDK" [Apache 2.0], "Python" [PSF / GPL], "SQLite" [BSD-style], "Hashcat" [MIT], "APKEditor" [Apache 2.0], "makeDebuggable" [Apache 2.0]"
 Write-Host "[i]" -ForegroundColor Blue "LICENSE: This script is licensed under the 'MIT' License."
 
 Write-Host "[~]" -ForegroundColor White "Are you want Close PowerShell Terminal? (Enter 'exit' to close)"
