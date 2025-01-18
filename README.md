@@ -38,7 +38,7 @@ Set-ExecutionPolicy Bypass -Scope Process -Force; & "$env:USERPROFILE\Downloads\
 > This script was tested on an Windows 11 Pro with WindowsPowerShell v5.1.26100.2161 and MicrosoftPowerShell v7.4.6
 
 > This script was tested on an Android device running Android 14 with AOSP with SnapChat
-v13.23.0.38
+v13.24.1.0
 
 ## Saftey!
 After My Eyes Only PinCode Recovery Complite, Please disabled Developer options from Device Settings. or uninstall SnapChat Debug APK and install SnapChat Release APK form Google PlayStore."

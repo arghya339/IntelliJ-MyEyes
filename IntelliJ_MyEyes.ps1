@@ -602,6 +602,25 @@ if ($databasesOutput -ne "/data/data/com.snapchat.android/databases") {
       } elseif ($apksPath -notlike "/data/app/com.snapchat.android-*") {
           Write-Host "[x]" -ForegroundColor Red "APKs path is empty or not specified. Cannot proceed with pulling APKs."
       }
+      if ($apksPath -like "^/data/app(/~[^/]+)?/com\.snapchat\.android.*$") {
+        Write-Host "[~]" -ForegroundColor White "Pulling APKs to path: $pullDir"
+        # Check if $cpu_abi needs to be renamed
+        if ($cpu_abi -eq "arm64-v8a") {
+          $cpu_abi = "arm64_v8a"
+        } elseif ($cpu_abi -eq "armeabi-v7a") {
+          $cpu_abi = "armeabi_v7a"
+        }
+          try {
+            adb -s $serial pull "$apksPath/base.apk" $pullDir > $null 2>&1  # to discard output.
+            adb -s $serial pull "$apksPath/split_config.$cpu_abi.apk" $pullDir > $null 2>&1  # to discard output.
+            adb -s $serial pull "$apksPath/split_config.$languageCode.apk" $pullDir > $null 2>&1  # to discard output.
+            adb -s $serial pull "$apksPath/split_config.$DPICategory.apk" $pullDir > $null 2>&1  # to discard output.
+          } catch {
+            Write-Host "[x]" -ForegroundColor Red "Failed to pull APKs. Error: $_"
+          }
+      } elseif ($apksPath -notlike "^/data/app(/~[^/]+)?/com\.snapchat\.android.*$") {
+          Write-Host "[x]" -ForegroundColor Red "APKs path is empty or not specified. Cannot proceed with pulling APKs."
+      }
       $requiredApks = @(
         (Join-Path $pullDir "base.apk"),
         (Join-Path $pullDir "split_config.$cpu_abi.apk"),
@@ -616,6 +635,7 @@ if ($databasesOutput -ne "/data/data/com.snapchat.android/databases") {
         Write-Host "[+]" -ForegroundColor Green "All necessary APKs are present in $pullDir dir."
       }
       
+      <#
       if ($apksPath -match "^/data/app(/~[^/]+)?/com\.snapchat\.android.*$") {
         Write-Host "[~]" -ForegroundColor White "Pulling APK to path: $meo\base.apk"
         try {
@@ -634,6 +654,7 @@ if ($databasesOutput -ne "/data/data/com.snapchat.android/databases") {
       } else {
         Write-Host "[+]" -ForegroundColor Green "SnapChat 'base.apk' are present in $meo dir."
       }
+      #>
 
       # --- Create the .zip archive of the pulled APKs ---
       if ($missingApks.Count -eq 0) {
@@ -711,6 +732,7 @@ if ($databasesOutput -ne "/data/data/com.snapchat.android/databases") {
         Write-Host "[x]" -ForegroundColor Red "Failed to signed the SnapChat APK."
       }
     
+      <#
       # --- Signed snapchat base.apk using apksigner.jar that comes with Google.SDK and using java 17 ---
       if (Test-Path $meo\base.apk) {
         Write-Host "[~]" -ForegroundColor White "Signing the SnapChat base APK..."
@@ -724,6 +746,7 @@ if ($databasesOutput -ne "/data/data/com.snapchat.android/databases") {
       } else {
         Write-Host "[x]" -ForegroundColor Red "Failed to signed the SnapChat base APK."
       }
+      #>
 
     # --- download makeDebuggable.py ---
     if (!(Test-Path (Join-Path $meo "makeDebuggable.py"))) {
