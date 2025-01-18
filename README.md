@@ -13,10 +13,18 @@ Automate the process of Brute Forcing the SnapChat My Eyes Only PinCode.
 
 ## Prerequisites
 - Android device with USB debugging enabled (and enable it form Developer options and you can enable Developer options by tapping the build number 7 times from Device Settings)
-- Android device with Sanpchat installed (and you know your SnapChat accouts password with Memories Smart Backup feature enabled)
+- Android device with SanpChat installed (and you know your SnapChat accouts password with Memories Smart Backup feature enabled)
 - A PC with working internet connection
+- Latest PowerShell (and you can check PowerShell Version uisng following command ~ `$PSVersionTable`)
 
 ## Usage
+- Open `Windows Terminal (Admin)`
+- Install Microsoft PowerShell on Windows using winget (Windows built in package manager): ~ `winget install Microsoft.PowerShell --silent --force`
+- Check MsPS Verison ~ `pwsh -v`
+- Remove the existing WindowsPowerShell directory: ~ `Remove-Item $env:USERPROFILE\Documents\WindowsPowerShell -Force -Recurse`
+- Open `Microsoft Terminal` right click in the `tab row` >  `Settings` > `Startup` > from `Default profile` `drop-down menu` select `PowerShell` > `Save` > Close `Microsoft Terminal` window
+- Open `Windows Terminal (Admin)`
+- Check MicrosoftPowerShell Version: ~ `$PSVersionTable`
 - Open [PowerShell](https://github.com/PowerShell/PowerShell) Terminal (Admin) and run the script with the following command:
 
 ```
@@ -27,6 +35,7 @@ Invoke-WebRequest -Uri https://raw.githubusercontent.com/arghya339/IntelliJ-MyEy
 Set-ExecutionPolicy Bypass -Scope Process -Force; & "$env:USERPROFILE\Downloads\IntelliJ_MyEyes.ps1"
 ```
 
+This script was tested on an Windows 11 Pro with WindowsPowerShell v5.1.26100.2161 and MicrosoftPowerShell v7.4.6
 This script was tested on an Android device running Android 14 with AOSP with SnapChat
 v13.23.0.38
 

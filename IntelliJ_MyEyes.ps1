@@ -11,7 +11,7 @@
 
 # Prerequisites:
 # - Android device with USB debugging enabled (and enable it form Developer options and you can enable Developer options by tapping the build number 7 times from Device Settings)
-# - Android device with Sanpchat installed (and you know your SnapChat accouts password with Memories Smart Backup feature enabled)
+# - Android device with SanpChat installed (and you know your SnapChat accouts password with Memories Smart Backup feature enabled)
 # - A PC with working internet connection
 
 # Disclaimer:
@@ -281,7 +281,7 @@ function Get-DPICategory {
   # Extract the numeric value (e.g., "Physical density: 440")
   if ($density -match "Physical density:\s*(\d+)") {
       $densityValue = $matches[1]
-      # Write-Host "[i] Device screen density: $densityValue DPI"
+      # Write-Host "[i]" "Device screen density: $densityValue DPI"
 
       # Map the density to DPI category
       switch ($densityValue) {
