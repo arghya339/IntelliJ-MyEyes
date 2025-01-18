@@ -178,7 +178,7 @@ foreach ($dependency in @("choco", "java", "android-sdk", "python", "hashcat"<#,
               # Install Oracle.JDK.17 using Winget due to latest in winget  # [GFTC]
               winget install Oracle.JDK.17 --silent --force
               # Verify Installation
-              if (-not (Test-Path "C:\Program Files\Microsoft\jdk-17.0.13.11-hotspot\bin")) {
+              if (-not (Test-Path "C:\Program Files\Java\jdk-17\bin")) {
                 Write-Host "[x] Oracle.JDK.17 installation failed. Please install it manually." -ForegroundColor Red
                 exit 1
               }
@@ -239,7 +239,7 @@ foreach ($dependency in @("choco", "java", "android-sdk", "python", "hashcat"<#,
           "hashcat" {
             # Install Hashcat using choco due to its only available in chocolatey [MIT]
             choco install hashcat -y --no-progress
-            # C:\tools\hashcat-6.2.6\hashcat.exe -V  # check hashcat version
+            # cd C:\tools\hashcat-6.2.6; C:\tools\hashcat-6.2.6\hashcat.exe -V  # check hashcat version
             # Verify Installation
             if (-not (Test-Path "C:\tools\hashcat-6.2.6\hashcat.exe")) {
               Write-Host "[x] Hashcat installation failed. Please install it manually." -ForegroundColor Red
@@ -257,12 +257,33 @@ foreach ($dependency in @("choco", "java", "android-sdk", "python", "hashcat"<#,
               # Remove-Item -Recurse -Force C:\Program Files\7-Zip  # Uninatall 7z using PS
           }#>
       }
+      
+      # Recheck java Installation
+      if ($dependency -eq "java") {
+        $installed = Test-Path "C:\Program Files\Java\jdk-17\bin"
+      } else {
+        $installed = Get-Command $dependency -ErrorAction SilentlyContinue
+      }
 
-      # Recheck Installation
+      # Recheck android-sdk Installation
       if ($dependency -eq "android-sdk") {
           $installed = Test-Path "C:\Android\android-sdk"
       } else {
           $installed = Get-Command $dependency -ErrorAction SilentlyContinue
+      }
+
+      # Recheck python Installation
+      if ($dependency -eq "python") {
+        $installed = Test-Path "$env:USERPROFILE\AppData\Local\Programs\Python\Python313"
+      } else {
+        $installed = Get-Command $dependency -ErrorAction SilentlyContinue
+      }
+      
+      # Recheck hashcat Installation
+      if ($dependency -eq "hashcat") {
+        $installed = Test-Path "C:\tools\hashcat-6.2.6\hashcat.exe"
+      } else {
+        $installed = Get-Command $dependency -ErrorAction SilentlyContinue
       }
 
       if (-not $installed) {
