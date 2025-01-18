@@ -953,7 +953,7 @@ if ($meoriesOutput -eq "/data/data/com.snapchat.android/databases/memories.db") 
   }
 
   # --- Open a URL in the default browser ---
-  if ($pincode.Count -eq 4) {
+  if ($pincode.Length -eq 4) {
     Write-Host -ForegroundColor Green "☆ Star & -{ Fork me..."
     Start-Process "https://github.com/arghya339/IntelliJ-MyEyes"
     Write-Host -ForegroundColor Green "Donation: PayPal/@arghyadeep339"
@@ -1011,7 +1011,11 @@ if ($meoriesOutput -eq "/data/data/com.snapchat.android/databases/memories.db") 
     Write-Host "[~]" -ForegroundColor White "Wait, Creating new My Eyes Only Passcode..."
     
     $newPasscode = Write-ColoredPrompt -Message "[?]" -ForegroundColor Yellow -PromptMessage "Please enter new My Eyes Only Passcode? (Only 4-digit are allowed!)"
-    if ($newPasscode.Length -eq 4) {
+    
+    if ([string]::IsNullOrWhiteSpace($newPasscode)) {
+      Write-Host "[x]" -ForegroundColor Red "Error: Passcode cannot be empty."
+      return
+    } elseif ($newPasscode.Length -eq 4) {
     
       adb -s $serial shell am force-stop com.snapchat.android  # force stop app
       Start-Sleep -Milliseconds 500  # Wait for 500 milliseconds
@@ -1099,9 +1103,6 @@ if ($meoriesOutput -eq "/data/data/com.snapchat.android/databases/memories.db") 
 
     } elseif ($newPasscode.Length -ne 4) {
       Write-Host "[x]" -ForegroundColor Red "Error: Passcode must be exactly 4 digits."
-    } elseif ([string]::IsNullOrWhiteSpace($newPasscode)) {
-      Write-Host "[x]" -ForegroundColor Red "Error: Passcode cannot be empty."
-      return
     }
      
   } elseif ($userInput -in @("No", "no", "N", "n")) {
