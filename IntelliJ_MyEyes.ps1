@@ -674,7 +674,7 @@ if ($databasesOutput -ne "/data/data/com.snapchat.android/databases") {
       # --- Merge split .APKs into a standalone .APK using APKEditor-*.jar and java 17 ---
       if (Test-Path $apksFilePath) {
         Write-Host "[~]" -ForegroundColor White "Merge Split .apks to Standalone .apk..."
-        java -jar $meo\APKEditor-1.4.1.jar m -i $apksFilePath -o $apkFilePath > $null 2>&1  # to discard output.
+        java -jar $meo\APKEditor-1.4.1.jar m -i $apksFilePath -o $apkFilePath *> $null  # to discard output.
       } elseif (!(Test-Path $apksFilePath)) {
         Write-Host "[i]" -ForegroundColor Blue "snapchat.apks not found."
       } elseif (Test-Path $apkFilePath) {
