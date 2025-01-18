@@ -1014,7 +1014,6 @@ if ($meoriesOutput -eq "/data/data/com.snapchat.android/databases/memories.db") 
     
     if ([string]::IsNullOrWhiteSpace($newPasscode)) {
       Write-Host "[x]" -ForegroundColor Red "Error: Passcode cannot be empty."
-      return
     } elseif ($newPasscode.Length -eq 4) {
     
       adb -s $serial shell am force-stop com.snapchat.android  # force stop app
