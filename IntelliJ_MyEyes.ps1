@@ -1167,13 +1167,18 @@ if ($userInput -in @("Yes", "yes", "Y", "y")) {
     if (!($CorePatchPath)) {
       adb -s $serial uninstall com.snapchat.android
     }
-  } elseif ($CorePatchPath) {
-    Write-Host "[x]" -ForegroundColor Red "SnapChat Debug apk found on $product_model device, Please manually install SnapChat Release apk form Google PlayStore."
-    adb -s $serial shell am start -a android.intent.action.VIEW -d "market://details?id=com.snapchat.android" > $null 2>&1
-  } elseif (!($packagePath)) {
-    Write-Host "[x]" -ForegroundColor Red "SnapChat Debug apk uninstalled from the $product_model device, Please manually install SnapChat Release apk form Google PlayStore."
-    adb -s $serial shell am start -a android.intent.action.VIEW -d "market://details?id=com.snapchat.android" > $null 2>&1
-  } elseif ($databasesOutput -ne "/data/data/com.snapchat.android/databases") {
+    if (!($packagePath)) {
+      Write-Host "[x]" -ForegroundColor Red "SnapChat Debug apk uninstalled from the $product_model device, Please manually install SnapChat Release apk form Google PlayStore."
+      adb -s $serial shell am start -a android.intent.action.VIEW -d "market://details?id=com.snapchat.android" > $null 2>&1
+    }
+
+    if ($CorePatchPath) {
+      Write-Host "[x]" -ForegroundColor Red "SnapChat Debug apk found on $product_model device, Please manually install SnapChat Release apk form Google PlayStore."
+      adb -s $serial shell am start -a android.intent.action.VIEW -d "market://details?id=com.snapchat.android" > $null 2>&1
+    }
+  }
+  
+  if ($databasesOutput -ne "/data/data/com.snapchat.android/databases") {
     Write-Host "[i]" -ForegroundColor Blue "SnapChat Release APK already installed on $product_model device, Please open SnapChat app and login your SnapChat account..."
     adb -s $serial shell monkey -p com.snapchat.android -c android.intent.category.LAUNCHER 1 *> $null 2>&1  # Open SnapChat app
   }
