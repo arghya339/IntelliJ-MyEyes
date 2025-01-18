@@ -327,6 +327,13 @@ foreach ($dependency in @("choco", "java", "jdk", "android-sdk", "python", "hash
         $installed = Get-Command $dependency -ErrorAction SilentlyContinue
       }
 
+      # Recheck java 8 Installation
+      if ($dependency -eq "jdk") {
+        $installed = Test-Path "C:\Program Files\AdoptOpenJDK\jdk-8.0.292.10-hotspot\bin"
+      } else {
+        $installed = Get-Command $dependency -ErrorAction SilentlyContinue
+      }
+
       # Recheck android-sdk Installation
       if ($dependency -eq "android-sdk") {
           $installed = Test-Path "C:\Android\android-sdk"
@@ -448,7 +455,7 @@ function Get-DPICategory {
 }
 $DPICategory = Get-DPICategory  # get device DPI
 # $languageCode = (adb -s $serial shell getprop persist.sys.locale).Split('-')[0] > $null 2>&1  # get device language code (ie.'en')
-$languageCode = adb -s $serial shell getprop persist.sys.locale
+$languageCode = adb -s $serial shell getprop persist.sys.locale | ForEach-Object { ($_ -split '-')[0] }
 if ($languageCode) {
     $languageCode.Split('-')[0] > $null 2>&1
 } else {
