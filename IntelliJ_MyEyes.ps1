@@ -424,7 +424,7 @@ $serial = $args[0]
 # --- adb dependent Variables ---
 $packagePath = adb -s $serial shell "pm path com.snapchat.android"  # "/data/app/com.snapchat.android-*/base.apk" or "^/data/app(/~[^/]+)?/com\.snapchat\.android.*$/base.apk" path
 $CorePatchPath = adb -s $serial shell "pm path com.coderstory.toolkit"  # Core Patch LSPosed Module APK Path
-$apksPath = $packagePath | ForEach-Object { ($_ -split ":")[1] -replace "/[^/]+\.apk", "" } | Select-Object -Unique  # "/data/app/com.snapchat.android-*" or "^/data/app(/~[^/]+)?/com\.snapchat\.android.*$" path
+$apksPath = $packagePath | ForEach-Object { ($_ -split ":")[1] -replace "/[^/]+\.apk", "" } | Select-Object -Unique  # "/data/app*/com.snapchat.android*" or "^/data/app(/~[^/]+)?/com\.snapchat\.android.*$" path
 $databasesOutput = & adb -s $serial shell run-as com.snapchat.android ls -d /data/data/com.snapchat.android/databases 2>$null  # SnapChat databases dir
 $meoriesOutput = & adb -s $serial shell run-as com.snapchat.android ls -f /data/data/com.snapchat.android/databases/memories.db 2>$null  # SnapChat memories.db file path
 $cpu_abi = adb -s $serial shell getprop ro.product.cpu.abi  # get device arch
@@ -583,7 +583,8 @@ if ($databasesOutput -ne "/data/data/com.snapchat.android/databases") {
     # --- Pull all APKs from device to the $pullDir directory ---
     Write-Host "[~]" -ForegroundColor White "Attempting to pull APK / APKs from path: $apksPath"
       # Only pull the APK if it's not an empty string
-      if ($apksPath -like "/data/app/com.snapchat.android-*") {
+      if ($apksPath -like "/data/app*/com.snapchat.android*") {
+        # $packagePath = adb shell "pm path com.snapchat.android"; $apksPath = $packagePath | ForEach-Object { ($_ -split ":")[1] -replace "/[^/]+\.apk", "" } | Select-Object -Unique; $apksPath -like "/data/app*/com.snapchat.android*"  # SnapChat v13.24.1.0
         Write-Host "[~]" -ForegroundColor White "Pulling APKs to path: $pullDir"
         # Check if $cpu_abi needs to be renamed
         if ($cpu_abi -eq "arm64-v8a") {
@@ -599,26 +600,7 @@ if ($databasesOutput -ne "/data/data/com.snapchat.android/databases") {
           } catch {
             Write-Host "[x]" -ForegroundColor Red "Failed to pull APKs. Error: $_"
           }
-      } elseif ($apksPath -notlike "/data/app/com.snapchat.android-*") {
-          Write-Host "[x]" -ForegroundColor Red "APKs path is empty or not specified. Cannot proceed with pulling APKs."
-      }
-      if ($apksPath -like "^/data/app(/~[^/]+)?/com\.snapchat\.android.*$") {
-        Write-Host "[~]" -ForegroundColor White "Pulling APKs to path: $pullDir"
-        # Check if $cpu_abi needs to be renamed
-        if ($cpu_abi -eq "arm64-v8a") {
-          $cpu_abi = "arm64_v8a"
-        } elseif ($cpu_abi -eq "armeabi-v7a") {
-          $cpu_abi = "armeabi_v7a"
-        }
-          try {
-            adb -s $serial pull "$apksPath/base.apk" $pullDir > $null 2>&1  # to discard output.
-            adb -s $serial pull "$apksPath/split_config.$cpu_abi.apk" $pullDir > $null 2>&1  # to discard output.
-            adb -s $serial pull "$apksPath/split_config.$languageCode.apk" $pullDir > $null 2>&1  # to discard output.
-            adb -s $serial pull "$apksPath/split_config.$DPICategory.apk" $pullDir > $null 2>&1  # to discard output.
-          } catch {
-            Write-Host "[x]" -ForegroundColor Red "Failed to pull APKs. Error: $_"
-          }
-      } elseif ($apksPath -notlike "^/data/app(/~[^/]+)?/com\.snapchat\.android.*$") {
+      } elseif ($apksPath -notlike "/data/app*/com.snapchat.android*") {
           Write-Host "[x]" -ForegroundColor Red "APKs path is empty or not specified. Cannot proceed with pulling APKs."
       }
       $requiredApks = @(
