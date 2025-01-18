@@ -177,6 +177,13 @@ foreach ($dependency in @("choco", "java", "android-sdk", "python", "hashcat"<#,
           "java" {
               # Install Oracle.JDK.17 using Winget due to latest in winget  # [GFTC]
               winget install Oracle.JDK.17 --silent --force
+              # Verify Installation
+              if (-not (Test-Path "C:\Program Files\Microsoft\jdk-17.0.13.11-hotspot\bin")) {
+                Write-Host "[x] Oracle.JDK.17 installation failed. Please install it manually." -ForegroundColor Red
+                exit 1
+              }
+              Write-Host "[+] Oracle.JDK.17 installed successfully." -ForegroundColor Green
+              # Add Oracle.JDK.17 path in environment variables
               $path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";C:\Program Files\Java\jdk-17\bin"
               [Environment]::SetEnvironmentVariable("Path", $path, "Machine")
               # java -version  # check java version
@@ -208,24 +215,37 @@ foreach ($dependency in @("choco", "java", "android-sdk", "python", "hashcat"<#,
               # choco uninstall android-sdk -y  # Uninstall android-sdk using choco
               # Remove-Item -Recurse -Force C:\Android\android-sdk Uninstall android-sdk using PS
               # winget uninstall Google.PlatformTools #  Uninatall PlatformTools using winget
-              # Remove-Item -Recurse -Force C:\Users\$env:USERPROFILE\AppData\Local\Android\Sdk\platform-tools  # Uninatall PlatformTools using PS
+              # Remove-Item -Recurse -Force $env:USERPROFILE\AppData\Local\Android\Sdk\platform-tools  # Uninatall PlatformTools using PS
           }
           "python" {
               # Install Python using Winget due to outdated in Chocolatey [PSF / GPL]
               winget install Python.Python.3.13 --silent --force
+              # Verify Installation
+              if (-not (Test-Path "$env:USERPROFILE\AppData\Local\Programs\Python\Python313")) {
+                Write-Host "[x] Python.3.13 installation failed. Please install it manually." -ForegroundColor Red
+                exit 1
+              }
+              Write-Host "[+] Python.3.13 installed successfully." -ForegroundColor Green
+              # Add Python.3.13 path in environment variables
+              $path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";$env:USERPROFILE\AppData\Local\Programs\Python\Python313"
+              [Environment]::SetEnvironmentVariable("Path", $path, "Machine")
+              $path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";$env:USERPROFILE\AppData\Local\Programs\Python\Python313\Scripts"
+              [Environment]::SetEnvironmentVariable("Path", $path, "Machine")
               # python --version
-              $path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";C:\Users\$env:USERPROFILE\AppData\Local\Programs\Python\Python313"
-              [Environment]::SetEnvironmentVariable("Path", $path, "Machine")
-              $path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";C:\Users\$env:USERPROFILE\AppData\Local\Programs\Python\Python313\Scripts"
-              [Environment]::SetEnvironmentVariable("Path", $path, "Machine")
               # winget uninstall Python.Python.3.13  # Uninstall Python 3.13 using winget
-              # Remove-Item -Recurse -Force C:\Users\$env:USERPROFILE\AppData\Local\Programs\Python\Python313  # Uninatall Python313 using PS
+              # Remove-Item -Recurse -Force $env:USERPROFILE\AppData\Local\Programs\Python\Python313  # Uninatall Python313 using PS
               # Remove-Item -Recurse -Force C:\Python312  # Uninatall Python312 using PS
           }
           "hashcat" {
             # Install Hashcat using choco due to its only available in chocolatey [MIT]
             choco install hashcat -y --no-progress
             # C:\tools\hashcat-6.2.6\hashcat.exe -V  # check hashcat version
+            # Verify Installation
+            if (-not (Test-Path "C:\tools\hashcat-6.2.6\hashcat.exe")) {
+              Write-Host "[x] Hashcat installation failed. Please install it manually." -ForegroundColor Red
+              exit 1
+            }
+            Write-Host "[+] Hashcat installed successfully." -ForegroundColor Green
             # choco uninstall hashcat -y  # Uninstall hashcat using choco
             # Remove-Item -Recurse -Force C:\tools\hashcat-6.2.6  # Uninatall Hashcat using PS
           }
