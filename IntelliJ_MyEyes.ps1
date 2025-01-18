@@ -1020,7 +1020,8 @@ if ($userInput -in @("Yes", "yes", "Y", "y")) {
   break  # Exit the loop after rerunning
 
 } elseif ($userInput -in @("No", "no", "N", "n")) {
-  Write-Host "[i]" -ForegroundColor Blue "Proceeding..."
+  Write-Host "[i]" -ForegroundColor Blue "Proceeding with purge IntelliJ MyEyes script rleated files directory..."
+  adb -s $serial shell "run-as com.snapchat.android rm /data/data/com.snapchat.android/sqlite"
   Remove-Item -Path "$meo" -Recurse -Force
   Remove-Item -Path "$fullScriptPath" -Force
 } else {
