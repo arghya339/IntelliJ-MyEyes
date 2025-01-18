@@ -208,7 +208,7 @@ foreach ($dependency in @("choco", "java", "android-sdk", "python", "hashcat"<#,
               # choco uninstall android-sdk -y  # Uninstall android-sdk using choco
               # Remove-Item -Recurse -Force C:\Android\android-sdk Uninstall android-sdk using PS
               # winget uninstall Google.PlatformTools #  Uninatall PlatformTools using winget
-              # Remove-Item -Recurse -Force C:\Users\arghy\AppData\Local\Android\Sdk\platform-tools  # Uninatall PlatformTools using PS
+              # Remove-Item -Recurse -Force C:\Users\$env:USERPROFILE\AppData\Local\Android\Sdk\platform-tools  # Uninatall PlatformTools using PS
           }
           "python" {
               # Install Python using Winget due to outdated in Chocolatey [PSF / GPL]
