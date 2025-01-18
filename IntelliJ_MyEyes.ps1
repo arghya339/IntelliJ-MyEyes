@@ -111,6 +111,18 @@ $debug_apkFilePath = Join-Path $meo "snapchat_debug.apk"  # snapchat_debug.apk f
 # --- Check for dependencies ---
 foreach ($dependency in @("choco", "java", "android-sdk", "python", "hashcat"<#, "7z"#>)) {
   $installed = $false
+  if ($dependency -eq "java") {
+    # Custom check for java installation
+    if (Test-Path "C:\Program Files\Java\jdk-17\bin") {
+        $installed = $true
+    }
+  } else {
+    # General check for executables
+    if (Get-Command $dependency -ErrorAction SilentlyContinue) {
+        $installed = $true
+    }
+  }
+
   if ($dependency -eq "android-sdk") {
       # Custom check for Android SDK installation
       if (Test-Path "C:\Android\android-sdk") {
@@ -121,6 +133,30 @@ foreach ($dependency in @("choco", "java", "android-sdk", "python", "hashcat"<#,
       if (Get-Command $dependency -ErrorAction SilentlyContinue) {
           $installed = $true
       }
+  }
+
+  if ($dependency -eq "python") {
+    # Custom check for python installation
+    if (Test-Path "$env:USERPROFILE\AppData\Local\Programs\Python\Python313") {
+        $installed = $true
+    }
+  } else {
+    # General check for executables
+    if (Get-Command $dependency -ErrorAction SilentlyContinue) {
+        $installed = $true
+    }
+  }
+
+  if ($dependency -eq "hashcat") {
+    # Custom check for hashcat installation
+    if (Test-Path "C:\tools\hashcat-6.2.6\hashcat.exe") {
+        $installed = $true
+    }
+  } else {
+    # General check for executables
+    if (Get-Command $dependency -ErrorAction SilentlyContinue) {
+        $installed = $true
+    }
   }
 
   if (-not $installed) {
