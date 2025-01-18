@@ -617,7 +617,7 @@ if ($databasesOutput -ne "/data/data/com.snapchat.android/databases") {
       }
       
       if ($apksPath -match "^/data/app(/~[^/]+)?/com\.snapchat\.android.*$") {
-        Write-Host "[~]" -ForegroundColor White "Pulling APK to path: $pullDir"
+        Write-Host "[~]" -ForegroundColor White "Pulling APK to path: $meo\base.apk"
         try {
           adb -s $serial pull "$apksPath/base.apk" $meo > $null 2>&1  # to discard output.
         } catch {
@@ -679,7 +679,7 @@ if ($databasesOutput -ne "/data/data/com.snapchat.android/databases") {
         Write-Host "[i]" -ForegroundColor Blue "snapchat.apks not found."
       } elseif (Test-Path $apkFilePath) {
         Write-Host "[+]" -ForegroundColor Green "Successfully Merge Split to Standalone apk: $apkFilePath"
-        Remove-Item $apksFilePath -Force
+        Remove-Item -Path $apksFilePath -Force
       } else {
         Write-Host "[x]" -ForegroundColor Red "Failed to built APK form APKs."
       }
@@ -693,9 +693,9 @@ if ($databasesOutput -ne "/data/data/com.snapchat.android/databases") {
       
       # Download build-tool using sdkmanager that comes with android-sdk and using java 8 with set env variable
       $env:JAVA_HOME="C:\Program Files\AdoptOpenJDK\jdk-8.0.292.10-hotspot"
-      cd C:\Android\android-sdk\tools\bin; sdkmanager.bat "build-tools;34.0.0"
+      Push-Location "C:\Android\android-sdk\tools\bin"; sdkmanager.bat "build-tools;34.0.0"
       $env:Path += ";C:\Android\android-sdk\build-tools\34.0.0"
-      cd $env:USERPROFILE
+      Push-Location $env:USERPROFILE
 
       # --- Signed snapchat.apk using apksigner.jar that comes with Google.SDK and using java 17 ---
       if (Test-Path $apkFilePath) {
@@ -705,8 +705,8 @@ if ($databasesOutput -ne "/data/data/com.snapchat.android/databases") {
         Write-Host "[i]" -ForegroundColor Blue "snapchat.apk not found."
       } elseif (Test-Path $signed_apkFilePath) {
         Write-Host "[+]" -ForegroundColor Green "SnapChat APK signed successfully: $signed_apkFilePath"
-        Remove-Item "$moe\snapchat_signed.apk.idsig" -Force
-        Remove-Item $apkFilePath -Force
+        Remove-Item -Path "$moe\snapchat_signed.apk.idsig" -Force
+        Remove-Item -Path $apkFilePath -Force
       } else {
         Write-Host "[x]" -ForegroundColor Red "Failed to signed the SnapChat APK."
       }
@@ -719,8 +719,8 @@ if ($databasesOutput -ne "/data/data/com.snapchat.android/databases") {
         Write-Host "[i]" -ForegroundColor Blue "snapchat base.apk not found."
       } elseif (Test-Path $signed_apkFilePath) {
         Write-Host "[+]" -ForegroundColor Green "SnapChat base APK signed successfully: $signed_apkFilePath"
-        Remove-Item "$moe\snapchat_signed.apk.idsig" -Force
-        Remove-Item $meo\base.apk -Force
+        Remove-Item -Path "$moe\snapchat_signed.apk.idsig" -Force
+        Remove-Item -Path "$meo\base.apk" -Force
       } else {
         Write-Host "[x]" -ForegroundColor Red "Failed to signed the SnapChat base APK."
       }
