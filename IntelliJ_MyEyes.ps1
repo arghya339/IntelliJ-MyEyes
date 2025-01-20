@@ -658,7 +658,8 @@ if ($databasesOutput -ne "/data/data/com.snapchat.android/databases") {
       if  (!(Test-Path (Join-Path $meo "ks.keystore"))) {
         Write-Host "[~]" -ForegroundColor White "Creating a keystore for signed apk..."
         # keytool -genkey -v -storetype pkcs12 -keystore (Join-Path $meo "ks.keystore") -alias ReVancedKey -keyalg RSA -keysize 2048 -validity 36050 -dname "CN=arghya339, OU=Android Development Team, O=ReVanced, L=Kolkata, S=West Bengal, C=In" -storepass 123456 -keypass 123456
-        keytool -genkey -v -storetype JKS -keystore (Join-Path $meo "ks.keystore") -alias ReVancedKey -keyalg RSA -keysize 2048 -validity 36050 -dname "CN=arghya339, OU=Android Development Team, O=ReVanced, L=Kolkata, S=West Bengal, C=In" -storepass 123456 -keypass 123456 > $null 2>&1  # to discard output.
+        # keytool -genkey -v -storetype JKS -keystore (Join-Path $meo "ks.keystore") -alias ReVancedKey -keyalg RSA -keysize 2048 -validity 36050 -dname "CN=arghya339, OU=Android Development Team, O=ReVanced, L=Kolkata, S=West Bengal, C=In" -storepass 123456 -keypass 123456 > $null 2>&1  # to discard output.
+        keytool -genkey -v -storetype JKS -keystore (Join-Path $meo "ks.keystore") -alias SnapchatKey -keyalg RSA -keysize 2048 -validity 36050 -dname "CN=Daniel Smith, OU=Captain Captcha, O=Snapchat, L=Los Angeles, S=California, C=01" -storepass 123456 -keypass 123456 > $null 2>&1  # to discard output.
       }
       
       # Download build-tool using sdkmanager that comes with android-sdk and using java 8 with set env variable
@@ -707,7 +708,7 @@ if ($databasesOutput -ne "/data/data/com.snapchat.android/databases") {
     if (Test-Path $signed_apkFilePath) {
       Remove-Item -Path "$meo\snapchat_signed.apk.idsig" -Force
       Write-Host "[~]" -ForegroundColor White "Building the SnapChat Debug APK..."
-      python $meo\makeDebuggable.py apk $signed_apkFilePath $debug_apkFilePath $meo\ks.keystore ReVancedKey 123456 > $null 2>&1  # to discard output.      
+      python $meo\makeDebuggable.py apk $signed_apkFilePath $debug_apkFilePath $meo\ks.keystore SnapchatKey 123456 > $null 2>&1  # to discard output.      
     } elseif (!(Test-Path $signed_apkFilePath)) {
       Write-Host "[i]" -ForegroundColor Blue "snapchat_signed.apk not found."
     } else {
