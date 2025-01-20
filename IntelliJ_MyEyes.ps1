@@ -123,7 +123,7 @@ foreach ($dependency in @("choco", "java", "jdk", "android-sdk", "python", "hash
               $version = choco --version -ErrorAction Stop
               if ($version) {
                   $installed = $true
-                  Write-Host "[+] Chocolatey is already installed (Version: $version)." -ForegroundColor Green
+                  Write-Host "[+]" -ForegroundColor Green "Chocolatey is already installed (Version: $version)."
               }
           } catch {
               $installed = $false
@@ -136,7 +136,7 @@ foreach ($dependency in @("choco", "java", "jdk", "android-sdk", "python", "hash
               $version = java -version 2>&1 -ErrorAction Stop # Redirect stderr to stdout
               if ($version -match 'java version "(\d+\.\d+\.\d+)" 2024-07-16 LTS') {
                   $installed = $true
-                  Write-Host "[+] Java is already installed (Version: $($version -split '`n')[0])." -ForegroundColor Green
+                  Write-Host "[+]" -ForegroundColor Green "Java is already installed (Version: $($version -split '`n')[0])."
               }
           } catch {
               $installed = $false
@@ -147,7 +147,7 @@ foreach ($dependency in @("choco", "java", "jdk", "android-sdk", "python", "hash
       "jdk" {
           if (Test-Path "C:\Program Files\AdoptOpenJDK\jdk-8.0.292.10-hotspot\bin") {
               $installed = $true
-              Write-Host "[+] AdoptOpenJDK 8 is already installed." -ForegroundColor Green
+              Write-Host "[+]" -ForegroundColor Green "AdoptOpenJDK 8 is already installed."
           }
       }
 
@@ -155,7 +155,7 @@ foreach ($dependency in @("choco", "java", "jdk", "android-sdk", "python", "hash
       "android-sdk" {
           if (Test-Path "C:\Android\android-sdk") {
               $installed = $true
-              Write-Host "[+] Android SDK is already installed." -ForegroundColor Green
+              Write-Host "[+]" -ForegroundColor Green "Android SDK is already installed."
           }
       }
 
@@ -166,9 +166,9 @@ foreach ($dependency in @("choco", "java", "jdk", "android-sdk", "python", "hash
               if ($versionOutput -match "Python (\d+\.\d+\.\d+)") {
                   $installed = $true
                   $version = $Matches[1] # Extract version number using regex
-                  Write-Host "[+] Python is already installed (Version: $version)." -ForegroundColor Green
+                  Write-Host "[+]" -ForegroundColor Green "Python is already installed (Version: $version)."
               } else {
-                  Write-Host "[!] Python detected, but version could not be determined." -ForegroundColor Yellow
+                  Write-Host "[!]" -ForegroundColor Yellow "Python detected, but version could not be determined."
               }
           } catch {
               $installed = $false
@@ -183,9 +183,9 @@ foreach ($dependency in @("choco", "java", "jdk", "android-sdk", "python", "hash
                   $version = & $hashcatPath --version 2>&1
                   if ($version -match "v6\.2\.6") {
                       $installed = $true
-                      Write-Host "[+] Hashcat is already installed and verified (Version: $version)." -ForegroundColor Green
+                      Write-Host "[+]" -ForegroundColor Green "Hashcat is already installed and verified (Version: $version)."
                   } else {
-                      Write-Host "[!] Hashcat version mismatch or not detected correctly." -ForegroundColor Yellow
+                      Write-Host "[!]" -ForegroundColor Yellow "Hashcat version mismatch or not detected correctly."
                   }
               }
           } catch {
@@ -203,9 +203,9 @@ foreach ($dependency in @("choco", "java", "jdk", "android-sdk", "python", "hash
                   if ($version -match '7-Zip (\d+\.\d+)') {
                       $version = $matches[1]
                       $installed = $true
-                      Write-Host "[+] Hashcat is already installed and verified (Version: $version)." -ForegroundColor Green
+                      Write-Host "[+]" -ForegroundColor Green "Hashcat is already installed and verified (Version: $version)."
                   } else {
-                      Write-Host "[!] Hashcat version mismatch or not detected correctly." -ForegroundColor Yellow
+                      Write-Host "[!]" -ForegroundColor Yellow "Hashcat version mismatch or not detected correctly."
                   }
               }
           } catch {
@@ -218,34 +218,34 @@ foreach ($dependency in @("choco", "java", "jdk", "android-sdk", "python", "hash
       default {
           if (Get-Command $dependency -ErrorAction SilentlyContinue) {
               $installed = $true
-              Write-Host "[+] '$dependency' is already installed." -ForegroundColor Green
+              Write-Host "[+]" -ForegroundColor Green "'$dependency' is already installed."
           }
       }
   }
 
   # If the dependency is not installed, attempt to install it
   if (-not $installed) {
-      Write-Host "[!] '$dependency' is not installed. Attempting to install..." -ForegroundColor Yellow
+      Write-Host "[!]" -ForegroundColor Yellow "'$dependency' is not installed. Attempting to install..."
 
       try {
           # Installation Logic
           switch ($dependency) {
               "choco" {
-                  Write-Host "[!] Installing Chocolatey using Winget..." -ForegroundColor Yellow
+                  Write-Host "[!]" -ForegroundColor Yellow "Installing Chocolatey using Winget..."
                   winget install Chocolatey.Chocolatey --accept-source-agreements --silent --force
                   # Ensure Chocolatey path is in environment variables
-                  Write-Host "[!] Checking environment variables..." -ForegroundColor Yellow
+                  Write-Host "[!]" -ForegroundColor Yellow "Checking environment variables..."
                   $envPath = [System.Environment]::GetEnvironmentVariable("Path", "Machine") -split ';'
                   if (-not ($envPath -contains "C:\ProgramData\chocolatey\bin")) {
                     $envPath += "C:\ProgramData\chocolatey\bin"
                     [System.Environment]::SetEnvironmentVariable("Path", ($envPath -join ';'), "Machine")
-                    Write-Host "[+] Chocolatey path added to environment variables." -ForegroundColor Green
+                    Write-Host "[+]" -ForegroundColor Green "Chocolatey path added to environment variables."
                   } else {
-                    Write-Host "[!] Chocolatey path already present in environment variables." -ForegroundColor Green
+                    Write-Host "[!]" -ForegroundColor Green "Chocolatey path already present in environment variables."
                   }
                 }
               "java" {
-                  Write-Host "[!] Installing Oracle JDK 17 using Winget..." -ForegroundColor Yellow
+                  Write-Host "[!]" -ForegroundColor Yellow "Installing Oracle JDK 17 using Winget..."
                   winget install Oracle.JDK.17 --accept-source-agreements --silent --force
                   <#
                   # winget already set Oracle.JDK.17 Path in System Environment Variable as C:\Program Files\Common Files\Oracle\Java\javapath
@@ -259,7 +259,7 @@ foreach ($dependency in @("choco", "java", "jdk", "android-sdk", "python", "hash
                   #>
                 }
               "jdk" {
-                  Write-Host "[!] Installing AdoptOpenJDK 8 using Winget..." -ForegroundColor Yellow
+                  Write-Host "[!]" -ForegroundColor Yellow "Installing AdoptOpenJDK 8 using Winget..."
                   winget install AdoptOpenJDK.OpenJDK.8 --accept-source-agreements --silent --force
                   # winget already set Oracle.JDK.17 Path in System Environment Variable as C:\Program Files\AdoptOpenJDK\jdk-8.0.292.10-hotspot\bin
                   # so remove a this specific path from the system's environment variable using PowerShell
@@ -269,7 +269,7 @@ foreach ($dependency in @("choco", "java", "jdk", "android-sdk", "python", "hash
                   [Environment]::SetEnvironmentVariable("Path", $path, "Machine")
                 }
               "android-sdk" {
-                  Write-Host "[!] Installing Android SDK using Chocolatey..." -ForegroundColor Yellow
+                  Write-Host "[!]" -ForegroundColor Yellow "Installing Android SDK using Chocolatey..."
                   # Install Android SDK using Chocolatey
                   choco install android-sdk -y --no-progress
                   # Add the Android SDK directories to Path (Ensure paths exist before modifying Path)
@@ -288,7 +288,7 @@ foreach ($dependency in @("choco", "java", "jdk", "android-sdk", "python", "hash
                   [Environment]::SetEnvironmentVariable("Path", $path, "Machine")
                 }
               "python" {
-                  Write-Host "[!] Installing Python 3.13 using Winget..." -ForegroundColor Yellow
+                  Write-Host "[!]" -ForegroundColor Yellow "Installing Python 3.13 using Winget..."
                   winget install Python.Python.3.13 --accept-source-agreements --silent --force
                   # Add Python.3.13 path in environment variables
                   $path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";$env:USERPROFILE\AppData\Local\Programs\Python\Python313"
@@ -297,7 +297,7 @@ foreach ($dependency in @("choco", "java", "jdk", "android-sdk", "python", "hash
                   [Environment]::SetEnvironmentVariable("Path", $path, "Machine")
                 }
               "hashcat" {
-                  Write-Host "[!] Installing Hashcat using Chocolatey..." -ForegroundColor Yellow
+                  Write-Host "[!]" -ForegroundColor Yellow "Installing Hashcat using Chocolatey..."
                   choco install hashcat -y --no-progress
                 }
               <#
@@ -305,7 +305,7 @@ foreach ($dependency in @("choco", "java", "jdk", "android-sdk", "python", "hash
                   # Install 7zip using Winget due to latest in winget
                   winget install 7zip.7zip --silent --force
                 }
-                #>
+              #>
             }
 
           # Recheck installation to verify success
@@ -320,14 +320,14 @@ foreach ($dependency in @("choco", "java", "jdk", "android-sdk", "python", "hash
           }
 
           if ($installed) {
-              Write-Host "[+] '$dependency' installed and verified successfully." -ForegroundColor Green
+              Write-Host "[+]" -ForegroundColor Green "'$dependency' installed and verified successfully."
           } else {
               throw "Installation verification failed for '$dependency'."
           }
 
       } catch {
-          Write-Host "[x] Failed to install '$dependency'. Error: $_" -ForegroundColor Red
-          Write-Host "[!] Please install '$dependency' manually and re-run the script." -ForegroundColor Yellow
+          Write-Host "[x]" -ForegroundColor Red "Failed to install '$dependency'. Error: $_"
+          Write-Host "[!]" -ForegroundColor Yellow "Please install '$dependency' manually and re-run the script."
           exit 1
       }
   }
