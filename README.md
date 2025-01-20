@@ -40,7 +40,7 @@ Set-ExecutionPolicy Bypass -Scope Process -Force; & "$env:USERPROFILE\Downloads\
 > This script was tested on an Android device running Android 14 with AOSP with SnapChat
 v13.24.1.0
 
-## Saftey!
+## Safety!
 After My Eyes Only PinCode Recovery Complite, Please disabled Developer options from Device Settings. or uninstall SnapChat Debug APK and install SnapChat Release APK form Google PlayStore."
 
 ## Dependencies

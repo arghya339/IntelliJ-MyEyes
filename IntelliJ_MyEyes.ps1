@@ -110,259 +110,226 @@ $debug_apkFilePath = Join-Path $meo "snapchat_debug.apk"  # snapchat_debug.apk f
 
 # --- Check for dependencies ---
 foreach ($dependency in @("choco", "java", "jdk", "android-sdk", "python", "hashcat"<#, "7z"#>)) {
+
   $installed = $false
-  if ($dependency -eq "java") {
-    # Custom check for java installation
-    if (Test-Path "C:\Program Files\Java\jdk-17\bin") {
-        $installed = $true
-    }
-  } else {
-    # General check for executables
-    if (Get-Command $dependency -ErrorAction SilentlyContinue) {
-        $installed = $true
-    }
-  }
+  $version = $null
 
-  if ($dependency -eq "jdk") {
-    # Custom check for java 8 installation
-    if (Test-Path "C:\Program Files\AdoptOpenJDK\jdk-8.0.292.10-hotspot\bin") {
-        $installed = $true
-    }
-  } else {
-    # General check for executables
-    if (Get-Command $dependency -ErrorAction SilentlyContinue) {
-        $installed = $true
-    }
-  }
+  # Custom dependency checks
+  switch ($dependency) {
 
-  if ($dependency -eq "android-sdk") {
-      # Custom check for Android SDK installation
-      if (Test-Path "C:\Android\android-sdk") {
-          $installed = $true
+      # Check for Chocolatey
+      "choco" {
+          try {
+              $version = choco --version -ErrorAction Stop
+              if ($version) {
+                  $installed = $true
+                  Write-Host "[+] Chocolatey is already installed (Version: $version)." -ForegroundColor Green
+              }
+          } catch {
+              $installed = $false
+          }
       }
-  } else {
-      # General check for executables
-      if (Get-Command $dependency -ErrorAction SilentlyContinue) {
-          $installed = $true
+
+      # Check for Java
+      "java" {
+          try {
+              $version = java -version 2>&1 -ErrorAction Stop # Redirect stderr to stdout
+              if ($version -match 'java version "(\d+\.\d+\.\d+)" 2024-07-16 LTS') {
+                  $installed = $true
+                  Write-Host "[+] Java is already installed (Version: $($version -split '`n')[0])." -ForegroundColor Green
+              }
+          } catch {
+              $installed = $false
+          }
+      }
+
+      # Check for JDK
+      "jdk" {
+          if (Test-Path "C:\Program Files\AdoptOpenJDK\jdk-8.0.292.10-hotspot\bin") {
+              $installed = $true
+              Write-Host "[+] AdoptOpenJDK 8 is already installed." -ForegroundColor Green
+          }
+      }
+
+      # Check for Android SDK
+      "android-sdk" {
+          if (Test-Path "C:\Android\android-sdk") {
+              $installed = $true
+              Write-Host "[+] Android SDK is already installed." -ForegroundColor Green
+          }
+      }
+
+      # Check for Python
+      "python" {
+          try {
+              $versionOutput = python --version 2>&1 # Capture output (both stdout and stderr)
+              if ($versionOutput -match "Python (\d+\.\d+\.\d+)") {
+                  $installed = $true
+                  $version = $Matches[1] # Extract version number using regex
+                  Write-Host "[+] Python is already installed (Version: $version)." -ForegroundColor Green
+              } else {
+                  Write-Host "[!] Python detected, but version could not be determined." -ForegroundColor Yellow
+              }
+          } catch {
+              $installed = $false
+          }
+      }
+
+      # Check for Hashcat
+      "hashcat" {
+          try {
+              $hashcatPath = "C:\tools\hashcat-6.2.6\hashcat.exe"
+              if (Test-Path $hashcatPath) {
+                  $version = & $hashcatPath --version 2>&1
+                  if ($version -match "v6\.2\.6") {
+                      $installed = $true
+                      Write-Host "[+] Hashcat is already installed and verified (Version: $version)." -ForegroundColor Green
+                  } else {
+                      Write-Host "[!] Hashcat version mismatch or not detected correctly." -ForegroundColor Yellow
+                  }
+              }
+          } catch {
+              $installed = $false
+          }
+      }
+      
+      <#
+      # Check for 7z
+      "7z" {
+          try {
+              $7zPath = "C:\Program Files\7-Zip\7z.exe"
+              if (Test-Path $7zPath) {
+                  $version = & $7zPath --version 2>&1
+                  if ($version -match '7-Zip (\d+\.\d+)') {
+                      $version = $matches[1]
+                      $installed = $true
+                      Write-Host "[+] Hashcat is already installed and verified (Version: $version)." -ForegroundColor Green
+                  } else {
+                      Write-Host "[!] Hashcat version mismatch or not detected correctly." -ForegroundColor Yellow
+                  }
+              }
+          } catch {
+              $installed = $false
+          }
+      }
+      #>
+      
+      # General executable check for unknown dependencies
+      default {
+          if (Get-Command $dependency -ErrorAction SilentlyContinue) {
+              $installed = $true
+              Write-Host "[+] '$dependency' is already installed." -ForegroundColor Green
+          }
       }
   }
 
-  if ($dependency -eq "python") {
-    # Custom check for python installation
-    if (Test-Path "$env:USERPROFILE\AppData\Local\Programs\Python\Python313") {
-        $installed = $true
-    }
-  } else {
-    # General check for executables
-    if (Get-Command $dependency -ErrorAction SilentlyContinue) {
-        $installed = $true
-    }
-  }
-
-  if ($dependency -eq "hashcat") {
-    # Custom check for hashcat installation
-    if (Test-Path "C:\tools\hashcat-6.2.6\hashcat.exe") {
-        $installed = $true
-    }
-  } else {
-    # General check for executables
-    if (Get-Command $dependency -ErrorAction SilentlyContinue) {
-        $installed = $true
-    }
-  }
-
+  # If the dependency is not installed, attempt to install it
   if (-not $installed) {
-      Write-Host "[!]" -ForegroundColor Yellow "Could not find '$dependency', attempting to install..."
+      Write-Host "[!] '$dependency' is not installed. Attempting to install..." -ForegroundColor Yellow
 
-      switch ($dependency) {
-          "choco" {
-              <#  
-              # Install Chocolatey using PS
-              Write-Host "[!] Attempting to install Chocolatey..."
-              $result = winget install Chocolatey.Chocolatey --silent --force | Out-String
-              if ($result -notmatch "Successfully installed") {
-                Write-Host "[x] Winget installation failed. Attempting manual installation..." -ForegroundColor Yellow
-                Set-ExecutionPolicy Bypass -Scope Process -Force;
-                [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072;
-                iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
-              }
-              if (-not (Test-Path "C:\ProgramData\chocolatey\bin\choco.exe")) {
-                Write-Host "[x] Chocolatey installation failed. Please install it manually." -ForegroundColor Red
-                exit 1
-              }
-              Write-Host "[+] Chocolatey installed successfully." -ForegroundColor Green
-              #>
-              # Install Chocolatey using Winget [Apache 2.0]
-              Write-Host "[!] Attempting to install Chocolatey using Winget..." -ForegroundColor Yellow
-              $result = winget install Chocolatey.Chocolatey --silent --force | Out-String
-              # choco --version  # check chocolatey version
-              if ($result -notmatch "Successfully installed") {
-                Write-Host "[x] Winget installation failed. Attempting manual installation..." -ForegroundColor Yellow
-                Set-ExecutionPolicy Bypass -Scope Process -Force
-                [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
-                iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
-              }
-              # Verify Installation
-              if (-not (Test-Path "C:\ProgramData\chocolatey\bin\choco.exe")) {
-                Write-Host "[x] Chocolatey installation failed. Please install it manually." -ForegroundColor Red
-                exit 1
-              }
-              Write-Host "[+] Chocolatey installed successfully." -ForegroundColor Green
-              # Ensure Chocolatey path is in environment variables
-              Write-Host "[!] Checking environment variables..." -ForegroundColor Yellow
-              $envPath = [System.Environment]::GetEnvironmentVariable("Path", "Machine") -split ';'
-              if (-not ($envPath -contains "C:\ProgramData\chocolatey\bin")) {
-                $envPath += "C:\ProgramData\chocolatey\bin"
-                [System.Environment]::SetEnvironmentVariable("Path", ($envPath -join ';'), "Machine")
-                Write-Host "[+] Chocolatey path added to environment variables." -ForegroundColor Green
-              } else {
-                Write-Host "[!] Chocolatey path already present in environment variables." -ForegroundColor Green
-              }
-              # Remove-Item -Recurse -Force C:\ProgramData\chocolatey  # Uninstall Chocolatey using PS
-              # winget uninstall Chocolatey.Chocolatey  # Uninstall chocolatey using winget
-              # Remove-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" -Name "ChocolateyInstall" -ErrorAction SilentlyContinue
-          }
-          "java" {
-              # Install Oracle.JDK.17 using Winget due to latest in winget  # [GFTC]
-              winget install Oracle.JDK.17 --silent --force
-              # Verify Installation
-              if (-not (Test-Path "C:\Program Files\Java\jdk-17\bin")) {
-                Write-Host "[x] Oracle.JDK.17 installation failed. Please install it manually." -ForegroundColor Red
-                exit 1
-              }
-              Write-Host "[+] Oracle.JDK.17 installed successfully." -ForegroundColor Green
-              # Add Oracle.JDK.17 path in environment variables
-              $path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";C:\Program Files\Java\jdk-17\bin"
-              [Environment]::SetEnvironmentVariable("Path", $path, "Machine")
-              # java -version  # check java version
-              # install Microsoft openjdk
-              # winget install Microsoft.OpenJDK.17 --silent --force
-              # $path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";C:\Program Files\Microsoft\jdk-17.0.13.11-hotspot\bin"
-              # [Environment]::SetEnvironmentVariable("Path", $path, "Machine")
-              # winget uninstall Oracle.JDK.17  # Uninstall oracle jdk using winget
-              # winget uninstall Microsoft.OpenJDK.17  # Uninstall microsoft jdk using winget
-          }
-          "jdk" {
-              # install java 8 using winget for sdkmanager required for downloading build-tools to use apksigner
-              winget install AdoptOpenJDK.OpenJDK.8 --force --silent
-              # Verify Installation
-              if (-not (Test-Path "C:\Program Files\AdoptOpenJDK\jdk-8.0.292.10-hotspot\bin")) {
-                Write-Host "[x] AdoptOpenJDK.OpenJDK.8 installation failed. Please install it manually." -ForegroundColor Red
-                exit 1
-              }
-              Write-Host "[+] AdoptOpenJDK.OpenJDK.8 installed successfully." -ForegroundColor Green
-              # Add AdoptOpenJDK.OpenJDK.8 path in environment variables
-              $path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";C:\Program Files\AdoptOpenJDK\jdk-8.0.292.10-hotspot\bin"
-              [Environment]::SetEnvironmentVariable("Path", $path, "Machine")
-              $env:JAVA_HOME="C:\Program Files\AdoptOpenJDK\jdk-8.0.292.10-hotspot"
-          }
-          "android-sdk" {
-              # Install SDK (SDK, PlatformTools) using Choco due to winget installs only the platform tools (adb and fastboot) [Apache 2.0]
-              $result = choco install android-sdk -y --no-progress -r | Out-String
-              # install PlatformTools (adb and fastboot) using Winget due to requred PlatformTools only [Apache 2.0]
-              # winget install Google.PlatformTools -y --no-progress
-              if ($result -match "already installed") {
-                  Write-Host "[+]" -ForegroundColor Green "'android-sdk' is already installed."
-              } elseif ($result -match "Chocolatey installed 1/1 packages") {
-                  Write-Host "[+]" -ForegroundColor Green "'android-sdk' installed successfully."
-              } else {
-                  Write-Host "[x]" -ForegroundColor Red "Failed to install 'android-sdk'. Please check the logs for details."
-                  exit 1
-              }
-              $path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";C:\Android\android-sdk\tools\bin"
-              [Environment]::SetEnvironmentVariable("Path", $path, "Machine")
-              $path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";C:\Android\android-sdk\platform-tools"
-              [Environment]::SetEnvironmentVariable("Path", $path, "Machine")
-              # check platform-tools: ~ adb devices
-              # choco uninstall android-sdk -y  # Uninstall android-sdk using choco
-              # Remove-Item -Recurse -Force C:\Android\android-sdk Uninstall android-sdk using PS
-              # winget uninstall Google.PlatformTools #  Uninatall PlatformTools using winget
-              # Remove-Item -Recurse -Force $env:USERPROFILE\AppData\Local\Android\Sdk\platform-tools  # Uninatall PlatformTools using PS
-          }
-          "python" {
-              # Install Python using Winget due to outdated in Chocolatey [PSF / GPL]
-              winget install Python.Python.3.13 --silent --force
-              # Verify Installation
-              if (-not (Test-Path "$env:USERPROFILE\AppData\Local\Programs\Python\Python313")) {
-                Write-Host "[x] Python.3.13 installation failed. Please install it manually." -ForegroundColor Red
-                exit 1
-              }
-              Write-Host "[+] Python.3.13 installed successfully." -ForegroundColor Green
-              # Add Python.3.13 path in environment variables
-              $path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";$env:USERPROFILE\AppData\Local\Programs\Python\Python313"
-              [Environment]::SetEnvironmentVariable("Path", $path, "Machine")
-              $path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";$env:USERPROFILE\AppData\Local\Programs\Python\Python313\Scripts"
-              [Environment]::SetEnvironmentVariable("Path", $path, "Machine")
-              # python --version
-              # winget uninstall Python.Python.3.13  # Uninstall Python 3.13 using winget
-              # Remove-Item -Recurse -Force $env:USERPROFILE\AppData\Local\Programs\Python\Python313  # Uninatall Python313 using PS
-              # Remove-Item -Recurse -Force C:\Python312  # Uninatall Python312 using PS
-          }
-          "hashcat" {
-            # Install Hashcat using choco due to its only available in chocolatey [MIT]
-            choco install hashcat -y --no-progress
-            # cd C:\tools\hashcat-6.2.6; C:\tools\hashcat-6.2.6\hashcat.exe -V  # check hashcat version
-            # Verify Installation
-            if (-not (Test-Path "C:\tools\hashcat-6.2.6\hashcat.exe")) {
-              Write-Host "[x] Hashcat installation failed. Please install it manually." -ForegroundColor Red
-              exit 1
+      try {
+          # Installation Logic
+          switch ($dependency) {
+              "choco" {
+                  Write-Host "[!] Installing Chocolatey using Winget..." -ForegroundColor Yellow
+                  winget install Chocolatey.Chocolatey --accept-source-agreements --silent --force
+                  # Ensure Chocolatey path is in environment variables
+                  Write-Host "[!] Checking environment variables..." -ForegroundColor Yellow
+                  $envPath = [System.Environment]::GetEnvironmentVariable("Path", "Machine") -split ';'
+                  if (-not ($envPath -contains "C:\ProgramData\chocolatey\bin")) {
+                    $envPath += "C:\ProgramData\chocolatey\bin"
+                    [System.Environment]::SetEnvironmentVariable("Path", ($envPath -join ';'), "Machine")
+                    Write-Host "[+] Chocolatey path added to environment variables." -ForegroundColor Green
+                  } else {
+                    Write-Host "[!] Chocolatey path already present in environment variables." -ForegroundColor Green
+                  }
+                }
+              "java" {
+                  Write-Host "[!] Installing Oracle JDK 17 using Winget..." -ForegroundColor Yellow
+                  winget install Oracle.JDK.17 --accept-source-agreements --silent --force
+                  <#
+                  # winget already set Oracle.JDK.17 Path in System Environment Variable as C:\Program Files\Common Files\Oracle\Java\javapath
+                  # Add Java to Path
+                  $jdkPath = 'C:\Program Files\Java\jdk-17\bin'
+                  $currentPath = [Environment]::GetEnvironmentVariable("Path", "Machine")
+                  if (-not ($currentPath -like "*$jdkPath*")) {
+                    $newPath = "$currentPath;$jdkPath"
+                    [Environment]::SetEnvironmentVariable("Path", $newPath, "Machine")
+                  }
+                  #>
+                }
+              "jdk" {
+                  Write-Host "[!] Installing AdoptOpenJDK 8 using Winget..." -ForegroundColor Yellow
+                  winget install AdoptOpenJDK.OpenJDK.8 --accept-source-agreements --silent --force
+                  # winget already set Oracle.JDK.17 Path in System Environment Variable as C:\Program Files\AdoptOpenJDK\jdk-8.0.292.10-hotspot\bin
+                  # so remove a this specific path from the system's environment variable using PowerShell
+                  $path = [Environment]::GetEnvironmentVariable("Path", "Machine")
+                  $path = $path -replace [Regex]::Escape("C:\Program Files\AdoptOpenJDK\jdk-8.0.292.10-hotspot\bin") + ";", ""
+                  $path = $path -replace [Regex]::Escape("C:\Program Files\AdoptOpenJDK\jdk-8.0.292.10-hotspot\bin"), ""
+                  [Environment]::SetEnvironmentVariable("Path", $path, "Machine")
+                }
+              "android-sdk" {
+                  Write-Host "[!] Installing Android SDK using Chocolatey..." -ForegroundColor Yellow
+                  # Install Android SDK using Chocolatey
+                  choco install android-sdk -y --no-progress
+                  # Add the Android SDK directories to Path (Ensure paths exist before modifying Path)
+                  $androidToolsPath = "C:\Android\android-sdk\tools\bin"
+                  $androidPlatformToolsPath = "C:\Android\android-sdk\platform-tools"
+                  # Get the current system PATH
+                  $path = [Environment]::GetEnvironmentVariable("Path", "Machine")
+                  # Check if the paths are already in the Path variable to avoid duplicates
+                  if ($path -notcontains $androidToolsPath) {
+                    $path += ";$androidToolsPath"
+                  }
+                  if ($path -notcontains $androidPlatformToolsPath) {
+                    $path += ";$androidPlatformToolsPath"
+                  }
+                  # Set the updated PATH variable
+                  [Environment]::SetEnvironmentVariable("Path", $path, "Machine")
+                }
+              "python" {
+                  Write-Host "[!] Installing Python 3.13 using Winget..." -ForegroundColor Yellow
+                  winget install Python.Python.3.13 --accept-source-agreements --silent --force
+                  # Add Python.3.13 path in environment variables
+                  $path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";$env:USERPROFILE\AppData\Local\Programs\Python\Python313"
+                  [Environment]::SetEnvironmentVariable("Path", $path, "Machine")
+                  $path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";$env:USERPROFILE\AppData\Local\Programs\Python\Python313\Scripts"
+                  [Environment]::SetEnvironmentVariable("Path", $path, "Machine")
+                }
+              "hashcat" {
+                  Write-Host "[!] Installing Hashcat using Chocolatey..." -ForegroundColor Yellow
+                  choco install hashcat -y --no-progress
+                }
+              <#
+              "7z" {
+                  # Install 7zip using Winget due to latest in winget
+                  winget install 7zip.7zip --silent --force
+                }
+                #>
             }
-            Write-Host "[+] Hashcat installed successfully." -ForegroundColor Green
-            # choco uninstall hashcat -y  # Uninstall hashcat using choco
-            # Remove-Item -Recurse -Force C:\tools\hashcat-6.2.6  # Uninatall Hashcat using PS
+
+          # Recheck installation to verify success
+          $installed = switch ($dependency) {
+              "choco" { (choco --version -ErrorAction SilentlyContinue) -ne $null }
+              "java" { $version = java -version 2>&1 -ErrorAction SilentlyContinue; $version -match 'java version "(\d+\.\d+\.\d+)" 2024-07-16 LTS' }
+              "jdk" { Test-Path "C:\Program Files\AdoptOpenJDK\jdk-8.0.292.10-hotspot\bin" }
+              "android-sdk" { Test-Path "C:\Android\android-sdk" }
+              "python" { $version = python --version 2>&1 -ErrorAction SilentlyContinue; $version -match "Python (\d+\.\d+\.\d+)" }
+              "hashcat" { $version = & $hashcatPath --version 2>&1; $version -match "v6\.2\.6" }
+              <#"7z" { $version = & $7zPath -version 2>$1; $version -match '7-Zip (\d+\.\d+)' }#>
           }
-          <#"7z" {
-              # Install 7zip using Winget due to latest in winget
-              winget install 7zip.7zip --silent --force
-              # 7z --version  # check 7z version
-              # winget uninstall 7zip.7zip  # Uninstall 7zip using 
-              # Remove-Item -Recurse -Force C:\Program Files\7-Zip  # Uninatall 7z using PS
-          }#>
-      }
-      
-      # Recheck java Installation
-      if ($dependency -eq "java") {
-        $installed = Test-Path "C:\Program Files\Java\jdk-17\bin"
-      } else {
-        $installed = Get-Command $dependency -ErrorAction SilentlyContinue
-      }
 
-      # Recheck java 8 Installation
-      if ($dependency -eq "jdk") {
-        $installed = Test-Path "C:\Program Files\AdoptOpenJDK\jdk-8.0.292.10-hotspot\bin"
-      } else {
-        $installed = Get-Command $dependency -ErrorAction SilentlyContinue
-      }
+          if ($installed) {
+              Write-Host "[+] '$dependency' installed and verified successfully." -ForegroundColor Green
+          } else {
+              throw "Installation verification failed for '$dependency'."
+          }
 
-      # Recheck android-sdk Installation
-      if ($dependency -eq "android-sdk") {
-          $installed = Test-Path "C:\Android\android-sdk"
-      } else {
-          $installed = Get-Command $dependency -ErrorAction SilentlyContinue
-      }
-
-      # Recheck python Installation
-      if ($dependency -eq "python") {
-        $installed = Test-Path "$env:USERPROFILE\AppData\Local\Programs\Python\Python313"
-      } else {
-        $installed = Get-Command $dependency -ErrorAction SilentlyContinue
-      }
-      
-      # Recheck hashcat Installation
-      if ($dependency -eq "hashcat") {
-        $installed = Test-Path "C:\tools\hashcat-6.2.6\hashcat.exe"
-      } else {
-        $installed = Get-Command $dependency -ErrorAction SilentlyContinue
-      }
-
-      if (-not $installed) {
-          Write-Host "[x]" -ForegroundColor Red "Failed to install '$dependency'. Please install it manually."
+      } catch {
+          Write-Host "[x] Failed to install '$dependency'. Error: $_" -ForegroundColor Red
+          Write-Host "[!] Please install '$dependency' manually and re-run the script." -ForegroundColor Yellow
           exit 1
-      } else {
-          Write-Host "[+]" -ForegroundColor Green "'$dependency' installed successfully."
       }
-  } else {
-      Write-Host "[+]" -ForegroundColor Green "'$dependency' is already installed."
   }
 }
 
@@ -1153,8 +1120,67 @@ if ($userInput -in @("Yes", "yes", "Y", "y")) {
   Write-Host "[i]" -ForegroundColor DarkRed "Invalid input. Please enter Yes or No."
 }
 
-# --- Saftey ---
-Write-Host "[x]" -ForegroundColor Red "Saftey! After My Eyes Only PinCode Recovery Complite, Please disabled Developer options from Device Settings. `nor uninstall SnapChat Debug APK and install SnapChat Release APK form Google PlayStore."
+
+# --- Prompt the user for input ---
+$userInput = Write-ColoredPrompt -Message "[?]" -ForegroundColor Yellow -PromptMessage "Are you want remove this script related dependency? (Yes/No)"
+# Check the user's input
+if ($userInput -in @("Yes", "yes", "Y", "y")) {
+
+  # winget uninstall 7zip.7zip  # Uninstall 7zip using winget
+  # Remove-Item -Recurse -Force C:\Program Files\7-Zip  # Uninstall 7z using PS
+
+  choco uninstall hashcat -y  # Uninstall hashcat using chocolatey
+  Remove-Item -Recurse -Force C:\tools\hashcat-6.2.6  # Uninstall Hashcat using PS
+
+  winget uninstall Python.Python.3.13  # Uninstall Python 3.13 using winget
+  Remove-Item -Recurse -Force $env:USERPROFILE\AppData\Local\Programs\Python\Python313  # Uninstall Python313 using PS
+  # remove a this specific path from the system's environment variable using PowerShell
+  $path = [Environment]::GetEnvironmentVariable("Path", "Machine")
+  $path = $path -replace [Regex]::Escape("$env:USERPROFILE\AppData\Local\Programs\Python\Python313") + ";", ""
+  $path = $path -replace [Regex]::Escape("$env:USERPROFILE\AppData\Local\Programs\Python\Python313"), ""
+  [Environment]::SetEnvironmentVariable("Path", $path, "Machine")
+
+  choco uninstall android-sdk -y  # Uninstall android-sdk using chocolatey
+  Remove-Item -Recurse -Force C:\Android\android-sdk  # Uninstall android-sdk using PS
+  # remove a this specific path from the system's environment variable using PowerShell
+  $path = [Environment]::GetEnvironmentVariable("Path", "Machine")
+  $path = $path -replace [Regex]::Escape("C:\Android\android-sdk\tools\bin") + ";", ""
+  $path = $path -replace [Regex]::Escape("C:\Android\android-sdk\tools\bin"), ""
+  [Environment]::SetEnvironmentVariable("Path", $path, "Machine")
+  # remove a this specific path from the system's environment variable using PowerShell
+  $path = [Environment]::GetEnvironmentVariable("Path", "Machine")
+  $path = $path -replace [Regex]::Escape("C:\Android\android-sdk\platform-tools") + ";", ""
+  $path = $path -replace [Regex]::Escape("C:\Android\android-sdk\platform-tools"), ""
+  [Environment]::SetEnvironmentVariable("Path", $path, "Machine")
+
+  winget uninstall AdoptOpenJDK.OpenJDK.8  # Uninstall AdoptOpenJDK.OpenJDK.8 uaing winget
+  Remove-Item -Recurse -Force C:\Program Files\AdoptOpenJDK\jdk-8.0.292.10-hotspot  # Uninstall AdoptOpenJDK.OpenJDK.8 uaing PS
+
+  winget uninstall Oracle.JDK.17  # Uninstall Oracle.JDL.17 using winget
+  Remove-Item -Recurse -Force C:\Program Files\Java\jdk-17
+  # remove a this specific path from the system's environment variable using PowerShell
+  $path = [Environment]::GetEnvironmentVariable("Path", "Machine")
+  $path = $path -replace [Regex]::Escape("C:\Program Files\Common Files\Oracle\Java\javapath") + ";", ""
+  $path = $path -replace [Regex]::Escape("C:\Program Files\Common Files\Oracle\Java\javapath"), ""
+  [Environment]::SetEnvironmentVariable("Path", $path, "Machine")
+
+  winget uninstall Chocolatey.Chocolatey  # Uninstall chocolatey using winget
+  Remove-Item -Recurse -Force C:\ProgramData\chocolatey  # Uninstall Chocolatey using PS
+  Remove-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" -Name "ChocolateyInstall" -ErrorAction SilentlyContinue
+  # remove a this specific path from the system's environment variable using PowerShell
+  $path = [Environment]::GetEnvironmentVariable("Path", "Machine")
+  $path = $path -replace [Regex]::Escape("C:\ProgramData\chocolatey\bin") + ";", ""
+  $path = $path -replace [Regex]::Escape("C:\ProgramData\chocolatey\bin"), ""
+  [Environment]::SetEnvironmentVariable("Path", $path, "Machine")
+
+} elseif ($userInput -in @("No", "no", "N", "n")) {
+  Write-Host "[i]" -ForegroundColor Blue "Proceeding without removing this script related dependency..."
+} else {
+  Write-Host "[i]" -ForegroundColor DarkRed "Invalid input. Please enter Yes or No."
+}
+
+# --- Safety ---
+Write-Host "[x]" -ForegroundColor Red "Safety! After My Eyes Only PinCode Recovery Complite, Please disabled Developer options from Device Settings. `nor uninstall SnapChat Debug APK and install SnapChat Release APK form Google PlayStore."
 Write-Host "[i]" -ForegroundColor Blue "Methods to Turn Off USB Debugging Manually via Device Settings: Go to 'Settings' > Developer options > Toggle off 'USB Debugging'."
 # --- Prompt the user for input ---
 $userInput = Write-ColoredPrompt -Message "[?]" -ForegroundColor Yellow -PromptMessage "Are you want install SnapChat Release APK form Google PlayStore? (Yes/No)"
@@ -1183,7 +1209,7 @@ if ($userInput -in @("Yes", "yes", "Y", "y")) {
   }
 
 } elseif ($userInput -in @("No", "no", "N", "n")) {
-  Write-Host "[x]" -ForegroundColor Red "WARNING! Proceeding without Saftey..."
+  Write-Host "[x]" -ForegroundColor Red "WARNING! Proceeding without Safety..."
 } else {
   Write-Host "[i]" -ForegroundColor DarkRed "Invalid input. Please enter Yes or No."
 }
