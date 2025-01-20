@@ -729,8 +729,12 @@ if ($databasesOutput -ne "/data/data/com.snapchat.android/databases") {
       }
 
       # install the modified SnapChat Debug apk using PlayStore Package Manager (com.androd.vending)
+      Write-Host "[~]" -ForegroundColor White "copy $debug_apkFilePath to device /data/local/tmp dir"
+      adb -s $serial push $debug_apkFilePath /data/local/tmp/
       Write-Host "[~]" -ForegroundColor White "Installing the SnapChat Debug APK using PlayStore Package Manager (com.androd.vending)..."
-      adb -s $serial install -i com.androd.vending $debug_apkFilePath
+      adb -s $serial shell pm install -i com.android.vending /data/local/tmp/snapchat_debug.apk
+      Write-Host "[~]" -ForegroundColor White "remove snapchat_debug.apk form device /data/local/tmp dir"
+      adb -s $serial shell rm /data/local/tmp/snapchat_debug.apk
 
     } else {
       Write-Host "[x]" -ForegroundColor Red "SnapChat DeBug APK not found!."
