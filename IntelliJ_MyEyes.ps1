@@ -671,7 +671,7 @@ if ($databasesOutput -ne "/data/data/com.snapchat.android/databases") {
       # --- Signed snapchat.apk using apksigner.jar that comes with Google.SDK and using java 17 ---
       if (Test-Path $apkFilePath) {
         Write-Host "[~]" -ForegroundColor White "Signing the SnapChat APK..."
-        apksigner sign --ks $meo\ks.keystore --ks-key-alias ReVancedKey --ks-pass pass:123456 --key-pass pass:123456 --out $signed_apkFilePath $apkFilePath
+        apksigner sign --ks $meo\ks.keystore --ks-key-alias SnapchatKey --ks-pass pass:123456 --key-pass pass:123456 --out $signed_apkFilePath $apkFilePath
       } elseif (!(Test-Path $apkFilePath)) {
         Write-Host "[i]" -ForegroundColor Blue "snapchat.apk not found."
       } elseif (Test-Path $signed_apkFilePath) {
@@ -686,7 +686,7 @@ if ($databasesOutput -ne "/data/data/com.snapchat.android/databases") {
       # --- Signed snapchat base.apk using apksigner.jar that comes with Google.SDK and using java 17 ---
       if (Test-Path $meo\base.apk) {
         Write-Host "[~]" -ForegroundColor White "Signing the SnapChat base APK..."
-        apksigner sign --ks $meo\ks.keystore --ks-key-alias ReVancedKey --ks-pass pass:123456 --key-pass pass:123456 --out $signed_apkFilePath $meo\base.apk
+        apksigner sign --ks $meo\ks.keystore --ks-key-alias SnapchatKey --ks-pass pass:123456 --key-pass pass:123456 --out $signed_apkFilePath $meo\base.apk
       } elseif (!(Test-Path $meo\base.apk)) {
         Write-Host "[i]" -ForegroundColor Blue "snapchat base.apk not found."
       } elseif (Test-Path $signed_apkFilePath) {
