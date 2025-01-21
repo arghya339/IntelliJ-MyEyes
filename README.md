@@ -44,7 +44,7 @@ Set-ExecutionPolicy Bypass -Scope Process -Force; & "$env:USERPROFILE\Downloads\
 
 ## Troubleshoot
 
-- [hash_passcode_null_error](../../docs/hash_passcode_null_error.md)
+- [hash_passcode_null_error](../../blob/main/docs/hashed_passcode_null_error.md)
 
 ## Safety!
 After My Eyes Only PinCode Recovery Complite, Please disabled Developer options from Device Settings. or uninstall SnapChat Debug APK and install SnapChat Release APK form Google PlayStore."
