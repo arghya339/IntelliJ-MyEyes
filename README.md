@@ -5,7 +5,7 @@ Automate the process of Brute Forcing the SnapChat My Eyes Only PinCode.
 <br>
 <img src="docs/images/Main.png">
 <br>
-<b> This Script works on both rooted and non rooted Android devices! </b>
+<b> This Script works on both rooted and 𝚗̶𝚘̶𝚗̶-̶𝚛̶𝚘̶𝚘̶𝚝̶𝚎̶𝚍̶ Android devices without superuser permission! </b>
 <br>
 
 ## Purpose
@@ -14,6 +14,7 @@ Automate the process of Brute Forcing the SnapChat My Eyes Only PinCode.
 ## Prerequisites
 - Android device with USB debugging enabled (and enable it form Developer options and you can enable Developer options by tapping the build number 7 times from Device Settings)
 - Android device with SanpChat installed (and you know your SnapChat accouts password with Memories Smart Backup feature enabled)
+- [CorePatch](https://github.com/LSPosed/CorePatch/releases) [LSPosed](https://github.com/JingMatrix/LSPosed/releases) Module hook in System Framework to bypass android system signature varification.
 - A PC [Windows 10 1809 (build 17763) or later (Windows 11)] or ~~mac~~ with working internet connection and Microsoft [DesktopAppInstaller](https://apps.microsoft.com/detail/9nblggh4nns1) known as [winget-cli](https://github.com/microsoft/winget-cli/releases/latest)
 - Latest Microsoft PowerShell (and you can check PowerShell Version uisng following command ~ `$PSVersionTable`)
 
@@ -39,7 +40,11 @@ Set-ExecutionPolicy Bypass -Scope Process -Force; & "$env:USERPROFILE\Downloads\
 
 > Note: WindowsPowerShell (including latest v5.1.26100.2161) Not compatible with this script
 
-> This script was tested on an Android device running Android 14 with AOSP based custom ROM with SnapChat v13.24.1.0
+> This script was tested on an Android device running Android 14 with AOSP based custom ROM with CorePatch LSPosed Module hook in System Framework with SnapChat v13.24.1.0 .
+
+## Troubleshoot
+
+- [hash_passcode_null_error](../../docs/hash_passcode_null_error.md)
 
 ## Safety!
 After My Eyes Only PinCode Recovery Complite, Please disabled Developer options from Device Settings. or uninstall SnapChat Debug APK and install SnapChat Release APK form Google PlayStore."
