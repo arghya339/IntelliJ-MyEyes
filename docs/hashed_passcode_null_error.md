@@ -5,6 +5,7 @@ When you create MEO Passcode, MEO Passcode convert into hashed_passcode that sto
 When you login your [SnapChat accounts](https://accounts.snapchat.com/) on a new device and first time unlocking My Eyes Only its required internet connection, 
 ![images](images/hashed_passcode_null_before_unlocking_meo_passcode_on_a_new_device.png)
 ![images](images/unlocing_MEO_on_a_new_device_requires_internet_access.jpg)
+
 when your enter your MEO Passcode its convert into hashed_passcode using bcrypt encryption this converted hashed_passcode and hashed_passcode that store on SnapChat Server both are compaired and when both are match its store on new device /data/data/com.snapchat.android/databases/memories.db file,
 ![images](images/hashed_passcode_array_after_unlocking_meo_passcode_on_a_new_device.png)
 this is a databases (.db) file so you can view this hashed_passcode using SQLite.
@@ -22,7 +23,8 @@ so if you are trying to crack MEO Passcode using this scipt required [CorePatch]
 
 # This Script work on non-rooted device?
 
-Nah! This script work on both rooted and non-rooted device if SnapChat Developer Team decide to remove this type MEO restore method.
+Nah! This script work on both rooted and non-rooted device if SnapChat Developer Team decide to remove this type MEO restore method. Also remove other unusual activity (`android:debuggable="true"` or SHA256 signature math) detection during SnapChat accounts login in SnapChat app.
+![images](images/other_unusual_activity_detect.png)
 
 # Summary
 

@@ -19,7 +19,7 @@
 # Modifying and reinstalling APKs can be risky and may violate app terms of service or legal regulations. 
 # Use it responsibly and at your own risk.
 
-# Saftey:
+# Safety:
 # After My Eyes Only PinCode Recovery Complite Please Disabled Developer options from Device Settings.
 # or Uninstall SnapChat Debug APK and install SnapChat Release APK form Google PlayStore.
 
