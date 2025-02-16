@@ -19,22 +19,38 @@ Automate the process of Brute Forcing the SnapChat My Eyes Only PinCode.
 - Latest Microsoft PowerShell (and you can check PowerShell Version uisng following command ~ `$PSVersionTable`)
 
 ## Usage
-- Open `Windows Terminal (Admin)`
-- Install Microsoft PowerShell on Windows using winget (Windows built in package manager): ~ `winget install Microsoft.PowerShell --accept-source-agreements --silent --force`
-- Check MsPS Verison ~ `pwsh -v`
-- Remove the existing WindowsPowerShell directory: ~ `Remove-Item $env:USERPROFILE\Documents\WindowsPowerShell -Force -Recurse`
-- Open `Microsoft Terminal` right click in the `tab row` >  `Settings` > `Startup` > from `Default profile` `drop-down menu` select `PowerShell` > `Save` > Close `Windows Terminal` window
-- Open `Windows Terminal (Admin)`
-- Check MicrosoftPowerShell Version: ~ `$PSVersionTable`
-- Open [Microsoft PowerShell](https://github.com/PowerShell/PowerShell) Terminal (Admin) and run the script with the following command:
+- Android
+  - Open [Termux](https://github.com/termux/termux-app/releases/) and run the script with the following command:
 
-```
-Invoke-WebRequest -Uri https://raw.githubusercontent.com/arghya339/IntelliJ-MyEyes/refs/heads/main/IntelliJ_MyEyes.ps1 -OutFile "$env:USERPROFILE\Downloads\IntelliJ_MyEyes.ps1"
-```
+  ```
+  wget "https://raw.githubusercontent.com/arghya339/IntelliJ-MyEyes/refs/heads/main/IntelliJ_MyEyes.sh" -O "$HOME/IntelliJ_MyEyes.sh"
+  ```
+  ```
+  sh $HOME/IntelliJ_MyEyes.sh
+  ```
+  or
+  ```
+  sh IntelliJ_MyEyes.sh
+  ```
+  > Note: Android script required superuser permission!
 
-```
-Set-ExecutionPolicy Bypass -Scope Process -Force; & "$env:USERPROFILE\Downloads\IntelliJ_MyEyes.ps1"
-```
+- Windows 10/11
+  - Open `Windows Terminal (Admin)`
+  - Install Microsoft PowerShell on Windows using winget (Windows built in package manager): ~ `winget install Microsoft.PowerShell --accept-source-agreements --silent --force`
+  - Check MsPS Verison ~ `pwsh -v`
+  - Remove the existing WindowsPowerShell directory: ~ `Remove-Item $env:USERPROFILE\Documents\WindowsPowerShell -Force -Recurse`
+  - Open `Microsoft Terminal` right click in the `tab row` >  `Settings` > `Startup` > from `Default profile` `drop-down menu` select `PowerShell` > `Save` > Close `Windows Terminal` window
+  - Open `Windows Terminal (Admin)`
+  - Check MicrosoftPowerShell Version: ~ `$PSVersionTable`
+  - Open [Microsoft PowerShell](https://github.com/PowerShell/PowerShell) Terminal (Admin) and run the script with the following command:
+
+  ```
+  Invoke-WebRequest -Uri https://raw.githubusercontent.com/arghya339/IntelliJ-MyEyes/refs/heads/main/IntelliJ_MyEyes.ps1 -OutFile "$env:USERPROFILE\Downloads\IntelliJ_MyEyes.ps1"
+  ```
+
+  ```
+  Set-ExecutionPolicy Bypass -Scope Process -Force; & "$env:USERPROFILE\Downloads\IntelliJ_MyEyes.ps1"
+  ```
 
 > This script was tested on an Windows 11 Pro with MicrosoftPowerShell v7.4.6
 
@@ -54,6 +70,8 @@ After My Eyes Only PinCode Recovery Complite, Please disabled Developer options 
 
 ## How it works (_[Demo on YouTube](https://youtu.be/5IjG4nY2Bog)_)
 SnapChat saves the 4 digit My Eyes Only (MEO) PinCode encrypted using [Bcrypt](https://en.wikipedia.org/wiki/Bcrypt) in `/data/data/com.snapchat.android/databases/memories.db`.
+
+![image](docs/images/Result_Android.png)
 
 ![image](docs/images/Result.png)
 
