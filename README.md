@@ -23,7 +23,7 @@ Automate the process of Brute Forcing the SnapChat My Eyes Only PinCode.
   - Open [Termux](https://github.com/termux/termux-app/releases/) and run the script with the following command:
 
   ```
-  wget "https://raw.githubusercontent.com/arghya339/IntelliJ-MyEyes/refs/heads/main/IntelliJ_MyEyes.sh" -O "$HOME/IntelliJ_MyEyes.sh" && clear
+  curl -o "$HOME/IntelliJ_MyEyes.sh" "https://raw.githubusercontent.com/arghya339/IntelliJ-MyEyes/refs/heads/main/IntelliJ_MyEyes.sh" && clear
   ```
   ```
   sh $HOME/IntelliJ_MyEyes.sh
