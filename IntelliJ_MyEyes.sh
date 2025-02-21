@@ -87,18 +87,18 @@ echo ""  # Space
 
 # --- Termux Storage Permission Check Logic ---
 if [ -d "$HOME/storage/shared" ]; then
-    echo "Storage permission already granted."
+    echo "${Green}${good} Storage permission already granted."
 else
     # Attempt to list /storage/emulated/0 to trigger the error
     error=$(ls /storage/emulated/0 2>&1)
     expected_error="ls: cannot open directory '/storage/emulated/0': Permission denied"
 
     if echo "$error" | grep -qF "$expected_error"; then
-        echo -e "${notice} Storage permission not granted. Running termux-setup-storage.."
+        echo "${Yellow}${notice} Storage permission not granted. Running termux-setup-storage.."
         termux-setup-storage
         exit 1  # Exit the script after handling the error
     else
-        echo -e "${bad} Unknown error: $error"
+        echo "${Red}${bad} Unknown error: $error"
         exit 1  # Exit on any other error
     fi
 fi
