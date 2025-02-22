@@ -307,6 +307,7 @@ if su -c "ls -l /data/data/com.snapchat.android/databases/memories.db" >/dev/nul
     su -c "monkey -p com.snapchat.android -c android.intent.category.LAUNCHER 1 > /dev/null 2>&1"
   else 
     echo "$bad Failed to crack pincode using hashcat."
+    termux-open-url "https://github.com/arghya339/IntelliJ-MyEyes/blob/main/docs%2Fhashed_passcode_null_error.md"  # open hashed_passcode_null_error docs if cracked pincode is null
     exit 1
   fi
 
