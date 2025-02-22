@@ -121,7 +121,7 @@ fi
 
 # --- Update Termux pkg ---
 echo "$running Updating Termux pkg.."
-{ pkg update && pkg upgrade -y; } > /dev/null 2>&1  # discarding output
+pkill pkg && { pkg update && pkg upgrade -y; } > /dev/null 2>&1  # discarding output
 
 # --- local Veriable ---
 fullScriptPath=$(realpath "$0")  # Get the full path of the currently running script
@@ -189,6 +189,7 @@ esac
 
 # --- install dependency ---
 # --- Installing proot-distro in Termux ---
+pkill dpkg && yes | dpkg --configure -a  # Forcefully kill dpkg process and configure dpkg
 if [ ! -f "/data/data/com.termux/files/usr/bin/proot-distro" ]; then
 echo "$running Installing proot-distro.."
 pkg install proot-distro -y > /dev/null 2>&1  # discarding output
