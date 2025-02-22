@@ -275,10 +275,16 @@ su -c "/data/data/com.snapchat.android/sqlite --version"
 # --- Get the hashed passcode ---
 if su -c "ls -l /data/data/com.snapchat.android/databases/memories.db" >/dev/null 2>&1; then
   hashed_passcode=$(su -c "/data/data/com.snapchat.android/sqlite /data/data/com.snapchat.android/databases/memories.db 'select hashed_passcode from memories_meo_confidential;'")
-  echo "\033[1;30;47m[####] Fetched hashed passcode: [$hashed_passcode]\033[0m"
-
-  # --- Save the hashed passcode into a .txt file ---
-  echo "$hashed_passcode" > "$hashed_passcode_file"
+  #  --- check if $hashed_passcode is null ---
+  if [ -z $hashed_passcode ]; then
+    echo "$bad Failed to fetched hashed passcode using SQLite."
+    termux-open-url "https://github.com/arghya339/IntelliJ-MyEyes/blob/main/docs%2Fhashed_passcode_null_error.md"  # open hashed_passcode_null_error docs if fetched hashed passcode is null
+    exit 1  # Terminate script execution
+  else
+    echo "\033[1;30;47m[####] Fetched hashed passcode: [$hashed_passcode]\033[0m"
+    # --- Save the hashed passcode into a .txt file ---
+    echo "$hashed_passcode" > "$hashed_passcode_file"
+  fi
 
   # Hashcat stores cracked hashes in a file called a $potfile, Removing the $potfile ensures the results are freshly computed for each execution.
 
@@ -305,64 +311,68 @@ if su -c "ls -l /data/data/com.snapchat.android/databases/memories.db" >/dev/nul
     echo "\033[1;92;47m[****] Cracked My Eyes Only pincode: [$pincode]\033[0m"
     echo "$info Please Open SnapChat app and try cracked 'My Eyes Only' Pincode: $pincode"
     su -c "monkey -p com.snapchat.android -c android.intent.category.LAUNCHER 1 > /dev/null 2>&1"
+
+    echo "${Green}☆ Star & -{ Fork me..${Reset}"
+    # Open GitHub URL
+    termux-open-url "https://github.com/arghya339/IntelliJ-MyEyes"
+    sleep 0.5  # 0.5 seconds = 500 milliseconds
+    echo "${Green}Donation: PayPal/@arghyadeep339${Reset}"
+    # Open PayPal URL
+    termux-open-url "https://www.paypal.com/paypalme/arghyadeep339"
+    sleep 0.5  # 0.5 seconds = 500 milliseconds
+    echo "${Green}Subscribe: YouTube/@MrPalash360${Reset}"
+    # Open YouTube URL for subscription
+    termux-open-url "https://www.youtube.com/channel/UC_OnjACMLvOR9SXjDdp2Pgg/videos?sub_confirmation=1"
+    sleep 0.5  # 0.5 seconds = 500 milliseconds
+    echo "${Green}Follow: Telegram${Reset}"
+    # Open Telegram update channel URL
+    termux-open-url "https://t.me/MrPalash360"
+    sleep 0.5  # 0.5 seconds = 500 milliseconds
+    echo "${Green}Join: Telegram${Reset}"
+    # Open Telegram discussion channel URL
+    termux-open-url "https://t.me/MrPalash360Discussion"
+
   else 
+    
     echo "$bad Failed to crack pincode using hashcat."
-    termux-open-url "https://github.com/arghya339/IntelliJ-MyEyes/blob/main/docs%2Fhashed_passcode_null_error.md"  # open hashed_passcode_null_error docs if cracked pincode is null
+    
+    # --- Prompt the user for input ---
+    userInput=$(Write_ColoredPrompt $question_mark "yellow" "Are you finding any bugs in this script? (Yes/No) ")
+    # Check the user's input
+    case "$userInput" in
+        [Yy]*)
+            # If user says Yes, ask for issue description
+            echo "$running Wait, creating a new bug reporting template using your keywords.."
+  
+            # Ask user to describe the bug
+            issue_description=$(Write_ColoredPrompt $question_mark "yellow" "Please describe what's not working in this script? (Write here..) ")
+
+            # Open the GitHub issue page with prefilled title and body
+            termux-open-url "https://github.com/arghya339/IntelliJ-MyEyes/issues/new?title=Bug&body=$issue_description"
+        
+            echo "🖤 Thanks for reporting!"
+            ;;
+        [Nn]*)
+            echo "$running Proceeding.."
+            ;;
+        *)
+            # If user provides an invalid input
+            echo "$info ${Blue}Invalid input. Please enter Yes or No.${Reset}"
+            ;;
+    esac
+
     exit 1
+    
   fi
 
   # --- Cleanup Hashcat reqired files ---
   proot-distro login ubuntu -- /bin/bash -c "rm -rf '$potfile' '$hashed_passcode_file'"
-
-  # --- Check if pincode length is 4 ---
-  if [ ${#pincode} -eq 4 ]; then
-    echo "${Green}☆ Star & -{ Fork me..${Reset}"
-    # Open GitHub URL
-    termux-open-url "https://github.com/arghya339/IntelliJ-MyEyes"
-    echo "${Green}Donation: PayPal/@arghyadeep339${Reset}"
-    # Open PayPal URL
-    termux-open-url "https://www.paypal.com/paypalme/arghyadeep339"
-    echo "${Green}Subscribe: YouTube/@MrPalash360${Reset}"
-    # Open YouTube URL for subscription
-    termux-open-url "https://www.youtube.com/channel/UC_OnjACMLvOR9SXjDdp2Pgg/videos?sub_confirmation=1"
-    echo "${Green}Follow: Telegram${Reset}"
-    # Open Telegram update channel URL
-    termux-open-url "https://t.me/MrPalash360"
-    echo "${Green}Join: Telegram${Reset}"
-    # Open Telegram discussion channel URL
-    termux-open-url "https://t.me/MrPalash360Discussion"
-  fi
 
 elif [ ! su -c ls -l /data/data/com.snapchat.android/databases/memories.db ]; then
   # File not found
   echo "$bad memories.db file not found in /data/data/com.snapchat.android/databases dir on $model device!"
   echo "$question Are you sure 'My Eyes Only' SnapChat features are turned on in the $model device?"
 fi
-
-# --- Prompt the user for input ---
-userInput=$(Write_ColoredPrompt $question_mark "yellow" "Are you finding any bugs in this script? (Yes/No) ")
-# Check the user's input
-case "$userInput" in
-    [Yy]*)
-        # If user says Yes, ask for issue description
-        echo "$running Wait, creating a new bug reporting template using your keywords.."
-  
-        # Ask user to describe the bug
-        issue_description=$(Write_ColoredPrompt $question_mark "yellow" "Please describe what's not working in this script? (Write here..) ")
-
-        # Open the GitHub issue page with prefilled title and body
-        termux-open-url "https://github.com/arghya339/IntelliJ-MyEyes/issues/new?title=Bug&body=$issue_description"
-        
-        echo "🖤 Thanks for reporting!"
-        ;;
-    [Nn]*)
-        echo "♥️ Thanks for using this script. Regards, @Arghya"
-        ;;
-    *)
-        # If user provides an invalid input
-        echo "$info ${Blue}Invalid input. Please enter Yes or No.${Reset}"
-        ;;
-esac
 
 # --- Prompt the user for input ---
 userInput=$(Write_ColoredPrompt $question_mark "yellow" "Are you want to rerun this script again? (Yes/No) ")
@@ -380,7 +390,8 @@ case "$userInput" in
         echo "$info Proceeding with purge IntelliJ MyEyes script related files and directory.."
         rm -rf "$meo"
         rm -rf "$fullScriptPath"
-          su -c "rm -rf /data/data/com.snapchat.android/sqlite"
+        su -c "rm -rf /data/data/com.snapchat.android/sqlite"
+        echo "♥️ Thanks for using this script. Regards, @Arghya"
         ;;
     *)
         # If user provides an invalid input
