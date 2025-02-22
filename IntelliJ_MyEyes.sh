@@ -136,16 +136,6 @@ potfile="/root/hashcat.potfile"  # Hashcat potfile variable
 # --- Create $meo dir if it does't exist ---
 mkdir -p "$meo"
 
-# --- Check if Snapchat is installed ---
-if [ -n "$package" ]; then
-  echo "$good Snapchat is installed on the device."
-else
-  echo "$bad Snapchat is not installed on the device."
-  echo "$notice Please manually install it from the Play Store."
-  # open the Play Store page for SnapChat
-  termux-open-url "https://play.google.com/store/apps/details?id=com.snapchat.android"
-fi
-
 # Colored prompt function
 Write_ColoredPrompt() {
     local message="$1"
@@ -169,23 +159,35 @@ Write_ColoredPrompt() {
 }
 question_mark="[?]"
 
-# --- Prompt the user for input ---
-userInput=$(Write_ColoredPrompt $question_mark "yellow" "Are you sure you have already installed the SnapChat app from PlayStore on your $model device? (Yes/No) ")
-# Check the user's input
-case "$userInput" in
-    [Yy]*)
-        echo "$running Proceeding.."
-        ;;
-    [Nn]*)
-        echo "$bad Please manually install SnapChat app from PlayStore on your $model device then rerun the script again."
-        # Open Snapchat app page on Play Store
-        termux-open-url "https://play.google.com/store/apps/details?id=com.snapchat.android"
-        exit 1
-        ;;
-    *)
-        echo "$info ${Blue}Invalid input. Please enter Yes or No.${Reset}"
-        ;;
-esac
+# --- Check if Snapchat is installed ---
+if [ -n "$package" ]; then
+  echo "$good Snapchat is installed on the device."
+else
+
+  echo "$bad Snapchat is not installed on the device."
+  echo "$notice Please manually install it from the Play Store."
+  # open the Play Store page for SnapChat
+  termux-open-url "https://play.google.com/store/apps/details?id=com.snapchat.android"
+
+  # --- Prompt the user for input ---
+  userInput=$(Write_ColoredPrompt $question_mark "yellow" "Are you sure you have already installed the SnapChat app from PlayStore on your $model device? (Yes/No) ")
+  # Check the user's input
+  case "$userInput" in
+      [Yy]*)
+          echo "$running Proceeding.."
+          ;;
+      [Nn]*)
+          echo "$bad Please manually install SnapChat app from PlayStore on your $model device then rerun the script again."
+          # Open Snapchat app page on Play Store
+          termux-open-url "https://play.google.com/store/apps/details?id=com.snapchat.android"
+          exit 1
+          ;;
+      *)
+          echo "$info ${Blue}Invalid input. Please enter Yes or No.${Reset}"
+          ;;
+  esac
+
+fi
 
 # --- install dependency ---
 # --- Installing proot-distro in Termux ---
