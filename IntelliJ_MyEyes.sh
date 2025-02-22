@@ -65,11 +65,11 @@ Reset="\033[0m"
 
 # Construct the eye shape using string concatenation
 eye=$(cat <<'EOF'
-.----------------------------------------.
-|█ █▄ █ ▀█▀ ██▀ █   █   █   █   █▄ ▄█ ██▀|    
-|█ █ ▀█  █   ▄▄ █▄▄ █▄▄ █ ▀▄█   █ ▀ █ █▄▄|
-|                 >_𝒟𝑒𝓋𝑒𝓁𝑜𝓅𝑒𝓇: @𝒶𝓇𝑔𝒽𝓎𝒶𝟥𝟥𝟫|
-'----------------------------------------'\nhttps://github.com/arghya339/IntelliJ-MyEyes
+       .----------------------------------------.
+       |█ █▄ █ ▀█▀ ██▀ █   █   █   █   █▄ ▄█ ██▀|    
+       |█ █ ▀█  █   ▄▄ █▄▄ █▄▄ █ ▀▄█   █ ▀ █ █▄▄|
+       |                 >_𝒟𝑒𝓋𝑒𝓁𝑜𝓅𝑒𝓇: @𝒶𝓇𝑔𝒽𝓎𝒶𝟥𝟥𝟫|
+       '----------------------------------------'\n      https://github.com/arghya339/IntelliJ-MyEyes
 EOF
 )
 # Print the eye shape with the specified foreground color
