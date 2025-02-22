@@ -87,18 +87,18 @@ echo ""  # Space
 
 # --- Termux Storage Permission Check Logic ---
 if [ -d "$HOME/storage/shared" ]; then
-    echo "${Green}${good} Storage permission already granted."
+    echo "${good} Storage permission already granted."
 else
     # Attempt to list /storage/emulated/0 to trigger the error
     error=$(ls /storage/emulated/0 2>&1)
     expected_error="ls: cannot open directory '/storage/emulated/0': Permission denied"
 
     if echo "$error" | grep -qF "$expected_error"; then
-        echo "${Yellow}${notice} Storage permission not granted. Running termux-setup-storage.."
+        echo "${notice} Storage permission not granted. Running termux-setup-storage.."
         termux-setup-storage
         exit 1  # Exit the script after handling the error
     else
-        echo "${Red}${bad} Unknown error: $error"
+        echo "${bad} Unknown error: $error"
         exit 1  # Exit on any other error
     fi
 fi
@@ -266,6 +266,7 @@ fi
 echo "$running Copy SQLite Binary from device $meo to SnapChat /data dir.."
 su -c "cp $meo/sqlite /data/data/com.snapchat.android"
 # --- Give execute (--x) permission to SQLite Binary
+echo "$running Give execute (--x) permission to SQLite Binary.."
 su -c "chmod +x /data/data/com.snapchat.android/sqlite"
 # --- Check SQLite --version ---
 echo "$running Checking SQLite --version.."
