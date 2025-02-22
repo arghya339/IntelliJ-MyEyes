@@ -377,7 +377,7 @@ case "$userInput" in
         # If user says No, proceed with purging script related files
         echo "$info Proceeding with purge IntelliJ MyEyes script related files and directory.."
         rm -rf "$meo"
-        #rm -rf "$fullScriptPath"
+        rm -rf "$fullScriptPath"
           su -c "rm -rf /data/data/com.snapchat.android/sqlite"
         ;;
     *)
