@@ -87,7 +87,7 @@ echo ""  # Space
 
 # --- Termux Storage Permission Check Logic ---
 if [ -d "$HOME/storage/shared" ]; then
-    echo "${good} Storage permission already granted."
+    echo "${good} Storage permission already granted via Termux API."
 else
     # Attempt to list /storage/emulated/0 to trigger the error
     error=$(ls /storage/emulated/0 2>&1)
@@ -97,6 +97,8 @@ else
         echo "${notice} Storage permission not granted. Running termux-setup-storage.."
         termux-setup-storage
         exit 1  # Exit the script after handling the error
+    elif echo "$error" | grep -q "^Android"; then
+        echo "$good Storage permission already granted via system Settings."
     else
         echo "${bad} Unknown error: $error"
         exit 1  # Exit on any other error
