@@ -112,6 +112,7 @@ if su -c "id" >/dev/null 2>&1; then
 else
   echo "$bad SU permission is not granted."
   echo "$notice Please open the Magisk/KernelSU/APatch app and manually grant root permissions to Termux."
+  return 1
 fi
 
 # --- Checking Internet Connection ---
