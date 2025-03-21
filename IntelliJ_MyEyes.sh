@@ -217,15 +217,22 @@ proot-distro login ubuntu -- bash -c "export DEBIAN_FRONTEND=noninteractive && {
 
 # --- Install Hashcat ---
 if ! proot-distro login ubuntu -- test -f /usr/bin/hashcat; then
-echo "$running Installing Hashcat in Ubuntu.."
+echo "$running Installing Hashcat inside PRoot Ubuntu.."
 proot-distro login ubuntu -- bash -c "apt install hashcat -y > /dev/null 2>&1"
 else
 echo "$good Hashcat already installed on ubuntu"
 fi
-# --- Check Hashcat Version ---
-echo "$running Checking Hashcat --version.."
-proot-distro login ubuntu -- bash -c "hashcat --version"
-
+# --- Check if Hashcat is installed inside the PRoot Ubuntu environment ---
+if proot-distro login ubuntu -- which hashcat > /dev/null 2>&1; then
+  echo "$running Checking Hashcat --version.."
+  hashcatVersion=$(proot-distro login ubuntu -- bash -c "hashcat --version")
+  echo "Hashcat $hashcatVersion"
+else
+  echo "$notice Hashcat binary not found inside PRoot Ubuntu!"
+  echo "$running installing Hashcat by rerunning 'IntelliJ MyEyes' script again.."
+  sh "$fullScriptPath"
+  exit 1  # exit from loop
+fi
 # --- Check if wget is installed ---
 if [ ! -f $bin/wget ]; then
 # installing wget for downloading files
