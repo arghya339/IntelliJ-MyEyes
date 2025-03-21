@@ -225,7 +225,7 @@ fi
 # --- Check if Hashcat is installed inside the PRoot Ubuntu environment ---
 if proot-distro login ubuntu -- which hashcat > /dev/null 2>&1; then
   echo "$running Checking Hashcat --version.."
-  hashcatVersion=$(proot-distro login ubuntu -- bash -c "hashcat --version")
+  hashcatVersion=$(proot-distro login ubuntu -- bash -c "hashcat --version" 2>/dev/null)
   echo "Hashcat $hashcatVersion"
 else
   echo "$notice Hashcat binary not found inside PRoot Ubuntu!"
