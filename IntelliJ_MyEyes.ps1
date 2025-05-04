@@ -638,7 +638,7 @@ if ($databasesOutput -ne "/data/data/com.snapchat.android/databases") {
       # --- Download APKEditor.jar if it doesn't exist ---
       if (!(Test-Path (Join-Path $meo "APKEditor-1.4.2.jar"))) {
         Write-Host "[~]" -ForegroundColor White "Downloading APKEditor-*.jar..."
-        Invoke-WebRequest -Uri https://github.com/REAndroid/APKEditor/releases/download/V1.4.2/APKEditor-1.4.2.jar -OutFile $meo\APKEditor-1.4.2.jar
+        Invoke-WebRequest -Uri https://github.com/REAndroid/APKEditor/releases/download/V1.4.3/APKEditor-1.4.3.jar -OutFile $meo\APKEditor-1.4.3.jar
       }
 
       # --- Merge split .APKs into a standalone .APK using APKEditor-*.jar and java 17 ---
