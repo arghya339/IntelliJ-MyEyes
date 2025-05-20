@@ -138,6 +138,7 @@ else
   package=$(su -c "pm list packages | grep 'com.snapchat.android'" 2>/dev/null)  # SnapChat packages list
 fi
 meo="$HOME/meo"  # $meo dir in Termux $HOME path
+Enforcing="$meo/Enforcing"  # Enforcing file
 outdatedPKG=$(apt list --upgradable 2>/dev/null)  # list of outdated pkg
 Android=$(getprop ro.build.version.release)
 arch=$(getprop ro.product.cpu.abi)  # get device arch
@@ -184,27 +185,78 @@ if [ $Android -ge "8" ]; then
   latestReleases=$(curl -s https://api.github.com/repos/$owner/$repo/releases/latest | jq -r '.tag_name | sub("^v"; "")')  # 0.118.0
   if [ "$termuxVersion" != "$latestReleases" ]; then
     echo "$bad Termux app is outdated!"
-    echo "$notice Install and update Termux app first, then rerun script again!"
-    termux-open "https://github.com/$owner/$repo/releases/download/v$latestReleases/termux-app_v${latestReleases}+github-debug_$arch.apk"
-    exit 1
+    echo "$running Downloading Termux app update.."
+    su -c "curl -L --progress-bar -o '/data/local/tmp/termux-app_v${latestReleases}+github-debug_$arch.apk' 'https://github.com/$owner/$repo/releases/download/v$latestReleases/termux-app_v${latestReleases}+github-debug_$arch.apk'"
+    echo "$notice Please rerun this script again after Termux app update!"
+    echo "$running Installing app update and restarting Termux app.." && sleep 1
+    # Temporary Disable SELinux Enforcing during installation if it not in Permissive
+    if [ "$(su -c 'getenforce 2>/dev/null')" = "Enforcing" ]; then
+      touch $Enforcing
+      su -c "setenforce 0"  # set SELinux to Permissive mode to unblock unauthorized operations
+      su -c "pm install -i com.android.vending '/data/local/tmp/termux-app_v${latestReleases}+github-debug_$arch.apk'"
+    else
+      su -c "pm install -i com.android.vending '/data/local/tmp/termux-app_v${latestReleases}+github-debug_$arch.apk'"
+    fi
+  else
+    if su -c "ls -l '/data/local/tmp/termux-app_v${latestReleases}+github-debug_$arch.apk'" >/dev/null 2>&1; then
+      if [ "$(su -c 'getenforce 2>/dev/null')" = "Permissive" ] && [ -f "$Enforcing" ]; then
+        su -c "setenforce 1"  # set SELinux to Enforcing mode to block unauthorized operations
+        rm $Enforcing
+      fi
+      su -c "rm '/data/local/tmp/termux-app_v${latestReleases}+github-debug_$arch.apk'"
+    fi
   fi
 elif [ $Android -eq "7" ]; then
   owner="termux" && repo="termux-app"
   lastReleases=$(curl -s https://api.github.com/repos/$owner/$repo/tags | jq -r '.[0].name | sub("^v"; "")')  # 0.119.0-beta.2
   if [ "$termuxVersion" != "$lastReleases" ]; then
     echo "$bad Termux app is outdated!"
-    echo "$notice Install and update Termux app first, then rerun script again!"
-    termux-open-url "https://github.com/$owner/$repo/releases/download/v$lastReleases/termux-app_v${lastReleases}+apt-android-7-github-debug_$arch.apk"
-    exit 1
+    echo "$running Downloading Termux app update.."
+    su -c "curl -L --progress-bar -o '/data/local/tmp/termux-app_v${lastReleases}+apt-android-7-github-debug_$arch.apk' 'https://github.com/$owner/$repo/releases/download/v$lastReleases/termux-app_v${lastReleases}+apt-android-7-github-debug_$arch.apk'"
+    echo "$notice Please rerun this script again after Termux app update!"
+    echo "$running Installing app update and restarting Termux app.." && sleep 1
+    # Temporary Disable SELinux Enforcing during installation if it not in Permissive
+    if [ "$(su -c 'getenforce 2>/dev/null')" = "Enforcing" ]; then
+      touch $Enforcing
+      su -c "setenforce 0"  # set SELinux to Permissive mode to unblock unauthorized operations
+      su -c "pm install -i com.android.vending '/data/local/tmp/termux-app_v${lastReleases}+apt-android-7-github-debug_$arch.apk'"
+    else
+      su -c "pm install -i com.android.vending '/data/local/tmp/termux-app_v${lastReleases}+apt-android-7-github-debug_$arch.apk'"
+    fi
+  else
+    if su -c "ls -l '/data/local/tmp/termux-app_v${lastReleases}+apt-android-7-github-debug_$arch.apk'" >/dev/null 2>&1; then
+      if [ "$(su -c 'getenforce 2>/dev/null')" = "Permissive" ] && [ -f "$Enforcing" ]; then
+        su -c "setenforce 1"  # set SELinux to Enforcing mode to block unauthorized operations
+        rm $Enforcing
+      fi
+      su -c "rm '/data/local/tmp/termux-app_v${lastReleases}+apt-android-7-github-debug_$arch.apk'"
+    fi
   fi
 elif [ $Android -eq "6" ] || [ $Android -eq "5" ]; then
   owner="termux" && repo="termux-app"
   lastReleases=$(curl -s https://api.github.com/repos/$owner/$repo/tags | jq -r '.[0].name | sub("^v"; "")')  # 0.119.0-beta.2
   if [ "$termuxVersion" != "$lastReleases" ]; then
     echo "$bad Termux app is outdated!"
-    echo "$notice Install and update Termux app first, then rerun script again!"
-    termux-open-url "https://github.com/$owner/$repo/releases/download/v$lastReleases/termux-app_v${lastReleases}+apt-android-5-github-debug_$arch.apk"
-    exit 1
+    echo "$running Downloading Termux app update.."
+    su -c "curl -L --progress-bar -o '/data/local/tmp/termux-app_v${lastReleases}+apt-android-5-github-debug_$arch.apk' 'https://github.com/$owner/$repo/releases/download/v$lastReleases/termux-app_v${lastReleases}+apt-android-5-github-debug_$arch.apk'"
+    echo "$notice Please rerun this script again after Termux app update!"
+    echo "$running Installing app update and restarting Termux app.." && sleep 1
+    # Temporary Disable SELinux Enforcing during installation if it not in Permissive
+    if [ "$(su -c 'getenforce 2>/dev/null')" = "Enforcing" ]; then
+      touch $Enforcing
+      su -c "setenforce 0"  # set SELinux to Permissive mode to unblock unauthorized operations
+      su -c "pm install -i com.android.vending '/data/local/tmp/termux-app_v${lastReleases}+apt-android-5-github-debug_$arch.apk'"
+    else
+      su -c "pm install -i com.android.vending '/data/local/tmp/termux-app_v${lastReleases}+apt-android-5-github-debug_$arch.apk'"
+    fi
+  else
+    if su -c "ls -l '/data/local/tmp/termux-app_v${lastReleases}+apt-android-5-github-debug_$arch.apk'" >/dev/null 2>&1; then
+      if [ "$(su -c 'getenforce 2>/dev/null')" = "Permissive" ] && [ -f "$Enforcing" ]; then
+        su -c "setenforce 1"  # set SELinux to Enforcing mode to block unauthorized operations
+        rm $Enforcing
+      fi
+      su -c "rm '/data/local/tmp/termux-app_v${lastReleases}+apt-android-5-github-debug_$arch.apk'"
+    fi
   fi
 fi
 
