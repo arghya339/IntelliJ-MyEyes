@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-# Clone IntelliJ_MyEyes.sh: ~ wget "https://raw.githubusercontent.com/arghya339/IntelliJ-MyEyes/refs/heads/main/IntelliJ_MyEyes.sh" -O $HOME/IntelliJ_MyEyes.sh
+# Clone IntelliJ_MyEyes.sh: ~ curl -o "$HOME/IntelliJ_MyEyes.sh" "https://raw.githubusercontent.com/arghya339/IntelliJ-MyEyes/refs/heads/main/IntelliJ_MyEyes.sh"
 # Usage instructions: ~ sh $HOME/IntelliJ_MyEyes.sh
 
 # Colored log indicators
@@ -126,11 +126,18 @@ fi
 echo "$running Updating Termux pkg.."
 pkill pkg && { pkg update && pkg upgrade -y; } > /dev/null 2>&1  # discarding output
 
-# --- local Veriable ---
+# --- Global Veriable ---
 fullScriptPath=$(realpath "$0")  # Get the full path of the currently running script
-bin=/data/data/com.termux/files/usr/bin  # Termux $bin dir
-package=$(su -c "pm list packages | grep com.snapchat.android" 2>/dev/null)  # SnapChat packages list
+bin="$PREFIX/bin"  # Termux $PREFIX/bin dir
+if [ "$(su -c 'getenforce 2>/dev/null')" = "Enforcing" ]; then
+  su -c "setenforce 0"  # set SELinux to Permissive mode to unblock unauthorized operations
+  package=$(su -c "pm list packages | grep com.snapchat.android" 2>/dev/null)  # SnapChat packages list
+  su -c "setenforce 1"  # set SELinux to Enforcing mode to block unauthorized operations
+else
+  package=$(su -c "pm list packages | grep 'com.snapchat.android'" 2>/dev/null)  # SnapChat packages list
+fi
 meo="$HOME/meo"  # $meo dir in Termux $HOME path
+outdatedPKG=$(apt list --upgradable 2>/dev/null)  # list of outdated pkg
 arch=$(getprop ro.product.cpu.abi)  # get device arch
 model=$(getprop ro.product.model)  # get device model
 hashed_passcode_file="$meo/hashed_passcode.txt"  # hashed_passcode.txt file
@@ -162,12 +169,12 @@ Write_ColoredPrompt() {
 }
 question_mark="[?]"
 
-# --- Check if Snapchat is installed ---
+# --- Check if SnapChat is installed ---
 if [ -n "$package" ]; then
-  echo "$good Snapchat is installed on the device."
+  echo "$good SnapChat is installed on the device."
 else
 
-  echo "$bad Snapchat is not installed on the device."
+  echo "$bad SnapChat is not installed on the device!"
   echo "$notice Please manually install it from the Play Store."
   # open the Play Store page for SnapChat
   termux-open-url "https://play.google.com/store/apps/details?id=com.snapchat.android"
@@ -181,7 +188,7 @@ else
           ;;
       [Nn]*)
           echo "$bad Please manually install SnapChat app from PlayStore on your $model device then rerun the script again."
-          # Open Snapchat app page on Play Store
+          # Open SnapChat app page on Play Store
           termux-open-url "https://play.google.com/store/apps/details?id=com.snapchat.android"
           exit 1
           ;;
@@ -202,7 +209,7 @@ else
 echo "$good proot-distro pkg already installed in Termux"
 fi
 
-# --- installing the ubuntu distribution using proot-distro ---
+# --- installing the Ubuntu distribution using proot-distro ---
 # Check if Ubuntu is already installed via proot-distro
 if ! ls "$PREFIX/var/lib/proot-distro/installed-rootfs/" 2>/dev/null | grep -iq "ubuntu"; then
 echo "$running Installing Ubuntu using proot-distro.."
@@ -217,10 +224,10 @@ proot-distro login ubuntu -- bash -c "export DEBIAN_FRONTEND=noninteractive && {
 
 # --- Install Hashcat ---
 if ! proot-distro login ubuntu -- test -f /usr/bin/hashcat; then
-echo "$running Installing Hashcat inside PRoot Ubuntu.."
+echo "$running Installing HashCat inside PRoot Ubuntu.."
 proot-distro login ubuntu -- bash -c "apt install hashcat -y > /dev/null 2>&1"
 else
-echo "$good Hashcat already installed on ubuntu"
+echo "$good HashCat already installed inside Ubuntu"
 fi
 # --- Check if Hashcat is installed inside the PRoot Ubuntu environment ---
 if proot-distro login ubuntu -- which hashcat > /dev/null 2>&1; then
@@ -233,13 +240,19 @@ else
   sh "$fullScriptPath"
   exit 1  # exit from loop
 fi
-# --- Check if wget is installed ---
-if [ ! -f $bin/wget ]; then
-# installing wget for downloading files
-echo "$running installing wget pkg.."
-pkg install wget -y > /dev/null 2>&1
+# --- curl pkg update function ---
+update_curl() {
+  if echo $outdatedPKG | grep -q "^curl/" 2>/dev/null; then
+    echo "$running Upgrading curl pkg.."
+    pkg upgrade curl -y > /dev/null 2>&1
+  fi
+}
+# --- Check if curl is installed ----
+if [ -f "$PREFIX/bin/curl" ]; then
+  update_curl
 else
-echo "$good wget already installed."
+  echo "$running Installing curl pkg.."
+  pkg install curl -y > /dev/null 2>&1
 fi
 
 # --- Prompt the user for input ---
@@ -251,7 +264,7 @@ case "$userInput" in
         ;;
     [Nn]*)
         echo "$bad Please login your SnapChat account in the SnapChat app first, then rerun the script again."
-        # Launch the Snapchat app
+        # Launch the SnapChat app
         su -c "monkey -p com.snapchat.android -c android.intent.category.LAUNCHER 1 > /dev/null 2>&1"
         exit 1
         ;;
@@ -263,8 +276,7 @@ esac
 # --- Download sqlite Binary ---
 if [ ! -f $meo/sqlite ]; then
   echo "$running Downloading SQLite Binary for Android.."
-  # wget "https://github.com/arghya339/sqlite3-android/releases/download/all/sqlite-$arch" -O "$meo/sqlite" 2>&1 | sed -un '/% /p; / saved /p'
-  wget "https://github.com/arghya339/sqlite3-android/releases/download/all/sqlite-$arch" -O "$meo/sqlite" > /dev/null 2>&1  # discarding wget output from Termux
+  curl -L --progress-bar -o "$meo/sqlite" "https://github.com/arghya339/sqlite3-android/releases/download/all/sqlite-$arch"
 fi
 
 # --- Check SQLite exist on $meo dir ---
@@ -306,7 +318,7 @@ if su -c "ls -l /data/data/com.snapchat.android/databases/memories.db" >/dev/nul
   # which hashcat || whereis hashcat  # get hashcat executable path, its located in root@localhost:/usr/bin# dir
 
   # --- Brute-force the hash ---
-  echo "$running Brute forcing hash using Hashcat.."
+  echo "$running Brute forcing hash using HashCat.."
   # echo "$HOME/meo/hashed_passcode.txt file content:" && proot-distro login ubuntu -- /bin/bash -c "cat $hashed_passcode_file"
   proot-distro login ubuntu -- /bin/bash -c "hashcat -m 3200 -a 3 '$hashed_passcode_file' '?d?d?d?d' --potfile-disable --force -o '$potfile' > /dev/null 2>&1"
 # using --potfile-disable flag to Temporarily ignore the potfile for the current session becouse i dont know hashcat default potfile path
@@ -319,7 +331,7 @@ if su -c "ls -l /data/data/com.snapchat.android/databases/memories.db" >/dev/nul
   # --- Validate and display result ---
   if [ ${#pincode} -eq 4 ]; then
     echo "\033[1;92;47m[****] Cracked My Eyes Only pincode: [$pincode]\033[0m"
-    echo "$info Please Open SnapChat app and try cracked 'My Eyes Only' Pincode: $pincode"
+    echo "$info Please Open SnapChat app and try cracked 'My Eyes Only' PinCode: $pincode"
     su -c "monkey -p com.snapchat.android -c android.intent.category.LAUNCHER 1 > /dev/null 2>&1"
 
     echo "${Green}☆ Star & -{ Fork me..${Reset}"
@@ -333,18 +345,18 @@ if su -c "ls -l /data/data/com.snapchat.android/databases/memories.db" >/dev/nul
     echo "${Green}Subscribe: YouTube/@MrPalash360${Reset}"
     # Open YouTube URL for subscription
     termux-open-url "https://www.youtube.com/channel/UC_OnjACMLvOR9SXjDdp2Pgg/videos?sub_confirmation=1"
-    sleep 0.5  # 0.5 seconds = 500 milliseconds
-    echo "${Green}Follow: Telegram${Reset}"
+    #sleep 0.5  # 0.5 seconds = 500 milliseconds
+    #echo "${Green}Follow: Telegram${Reset}"
     # Open Telegram update channel URL
-    termux-open-url "https://t.me/MrPalash360"
-    sleep 0.5  # 0.5 seconds = 500 milliseconds
-    echo "${Green}Join: Telegram${Reset}"
+    #termux-open-url "https://t.me/MrPalash360"
+    #sleep 0.5  # 0.5 seconds = 500 milliseconds
+    #echo "${Green}Join: Telegram${Reset}"
     # Open Telegram discussion channel URL
-    termux-open-url "https://t.me/MrPalash360Discussion"
+    #termux-open-url "https://t.me/MrPalash360Discussion"
 
   else 
     
-    echo "$bad Failed to crack pincode using hashcat."
+    echo "$bad Failed to crack pincode using HashCat."
     
     # --- Prompt the user for input ---
     userInput=$(Write_ColoredPrompt $question_mark "yellow" "Are you finding any bugs in this script? (Yes/No) ")
@@ -385,7 +397,7 @@ elif [ ! su -c ls -l /data/data/com.snapchat.android/databases/memories.db ]; th
 fi
 
 # --- Prompt the user for input ---
-userInput=$(Write_ColoredPrompt $question_mark "yellow" "Are you want to rerun this script again? (Yes/No) ")
+userInput=$(Write_ColoredPrompt $question_mark "yellow" "Do you want to rerun this script again? (Yes/No) ")
 # Check the user's input
 case "$userInput" in
     [Yy]*)
@@ -426,7 +438,7 @@ case "$userInput" in
         apt autoremove -y > /dev/null 2>&1
         ;;
     [Nn]*)
-        echo "$info Proceeding without removing script-related dependencies."
+        echo "$info Proceeding without removing script-related dependencies!"
         ;;
     *)
         # If user provides an invalid input
@@ -435,15 +447,15 @@ case "$userInput" in
 esac
 
 # --- Developer Info ---
-echo "$Green Powered by Hashcat (github.com/hashcat/hashcat)"
+echo "${Green}Powered by Hashcat (github.com/hashcat/hashcat)"
 termux-open-url "https://github.com/hashcat/hashcat/"
-echo "$Green Inspired by meobrute (github.com/sdushantha/meobrute)"
-echo "$Green Developer: @arghya339 (github.com/arghya339)"
+echo "${Green}Inspired by meobrute (github.com/sdushantha/meobrute)"
+echo "${Green}Developer: @arghya339 (github.com/arghya339)"
 
 # --- External Dependencies ---
 echo "$info External Dependencies: 'PRoot Distro' [GNU 3.0], 'Ubuntu' [CC-BY-SA 3.0], 'Hashcat' [MIT] 'SQLite' [BSD-style]"
 echo "$info LICENSE: This script is licensed under the 'MIT' License."
 
 # --- Close Terminal Prompt ---
-echo "$info Are you want to close Termux? (Enter 'exit' to close)"
-##################################################################
+echo "$info Do you want to close Termux? (Enter 'exit' to close)"
+#################################################################
