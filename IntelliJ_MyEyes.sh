@@ -127,6 +127,7 @@ echo "$running Updating Termux pkg.."
 pkill pkg && { pkg update && pkg upgrade -y; } > /dev/null 2>&1  # discarding output
 
 # --- Global Veriable ---
+termuxVersion=$(echo $TERMUX_VERSION 2>/dev/null)  # Get Termux application version (ie. 0.118.0 or 0.119.0-beta.2)
 fullScriptPath=$(realpath "$0")  # Get the full path of the currently running script
 bin="$PREFIX/bin"  # Termux $PREFIX/bin dir
 if [ "$(su -c 'getenforce 2>/dev/null')" = "Enforcing" ]; then
@@ -138,6 +139,7 @@ else
 fi
 meo="$HOME/meo"  # $meo dir in Termux $HOME path
 outdatedPKG=$(apt list --upgradable 2>/dev/null)  # list of outdated pkg
+Android=$(getprop ro.build.version.release)
 arch=$(getprop ro.product.cpu.abi)  # get device arch
 model=$(getprop ro.product.model)  # get device model
 hashed_passcode_file="$meo/hashed_passcode.txt"  # hashed_passcode.txt file
@@ -145,6 +147,66 @@ potfile="/root/hashcat.potfile"  # Hashcat potfile variable
 
 # --- Create $meo dir if it does't exist ---
 mkdir -p "$meo"
+
+# --- curl pkg update function ---
+update_curl() {
+  if echo $outdatedPKG | grep -q "^curl/" 2>/dev/null; then
+    echo "$running Upgrading curl pkg.."
+    pkg upgrade curl -y > /dev/null 2>&1
+  fi
+}
+# --- Check if curl is installed ----
+if [ -f "$PREFIX/bin/curl" ]; then
+  update_curl
+else
+  echo "$running Installing curl pkg.."
+  pkg install curl -y > /dev/null 2>&1
+fi
+
+# --- jq pkg update function ---
+update_jq() {
+  if echo $outdatedPKG | grep -q "^jq/" 2>/dev/null; then
+    echo "$running Upgrading jq pkg.."
+    pkg upgrade jq -y > /dev/null 2>&1
+  fi
+}
+# --- Check if jq is installed ----
+if [ -f "$PREFIX/bin/jq" ]; then
+  update_jq
+else
+  echo "$running Installing jq pkg.."
+  pkg install jq -y > /dev/null 2>&1
+fi
+
+# --- Check if Termux Version is Latest ---
+if [ $Android -ge "8" ]; then
+  owner="termux" && repo="termux-app"
+  latestReleases=$(curl -s https://api.github.com/repos/$owner/$repo/releases/latest | jq -r '.tag_name | sub("^v"; "")')  # 0.118.0
+  if [ "$termuxVersion" != "$latestReleases" ]; then
+    echo "$bad Termux app is outdated!"
+    echo "$notice Install and update Termux app first, then rerun script again!"
+    termux-open "https://github.com/$owner/$repo/releases/download/v$latestReleases/termux-app_v${latestReleases}+github-debug_$arch.apk"
+    exit 1
+  fi
+elif [ $Android -eq "7" ]; then
+  owner="termux" && repo="termux-app"
+  lastReleases=$(curl -s https://api.github.com/repos/$owner/$repo/tags | jq -r '.[0].name | sub("^v"; "")')  # 0.119.0-beta.2
+  if [ "$termuxVersion" != "$lastReleases" ]; then
+    echo "$bad Termux app is outdated!"
+    echo "$notice Install and update Termux app first, then rerun script again!"
+    termux-open-url "https://github.com/$owner/$repo/releases/download/v$lastReleases/termux-app_v${lastReleases}+apt-android-7-github-debug_$arch.apk"
+    exit 1
+  fi
+elif [ $Android -eq "6" ] || [ $Android -eq "5" ]; then
+  owner="termux" && repo="termux-app"
+  lastReleases=$(curl -s https://api.github.com/repos/$owner/$repo/tags | jq -r '.[0].name | sub("^v"; "")')  # 0.119.0-beta.2
+  if [ "$termuxVersion" != "$lastReleases" ]; then
+    echo "$bad Termux app is outdated!"
+    echo "$notice Install and update Termux app first, then rerun script again!"
+    termux-open-url "https://github.com/$owner/$repo/releases/download/v$lastReleases/termux-app_v${lastReleases}+apt-android-5-github-debug_$arch.apk"
+    exit 1
+  fi
+fi
 
 # Colored prompt function
 Write_ColoredPrompt() {
@@ -231,28 +293,14 @@ echo "$good HashCat already installed inside Ubuntu"
 fi
 # --- Check if Hashcat is installed inside the PRoot Ubuntu environment ---
 if proot-distro login ubuntu -- which hashcat > /dev/null 2>&1; then
-  echo "$running Checking Hashcat --version.."
+  echo "$running Checking hashcat --version.."
   hashcatVersion=$(proot-distro login ubuntu -- bash -c "hashcat --version" 2>/dev/null)
-  echo "Hashcat $hashcatVersion"
+  echo "HashCat $hashcatVersion"
 else
-  echo "$notice Hashcat binary not found inside PRoot Ubuntu!"
-  echo "$running installing Hashcat by rerunning 'IntelliJ MyEyes' script again.."
+  echo "$notice HashCat binary not found inside PRoot Ubuntu!"
+  echo "$running installing HashCat by rerunning 'IntelliJ MyEyes' script again.."
   sh "$fullScriptPath"
   exit 1  # exit from loop
-fi
-# --- curl pkg update function ---
-update_curl() {
-  if echo $outdatedPKG | grep -q "^curl/" 2>/dev/null; then
-    echo "$running Upgrading curl pkg.."
-    pkg upgrade curl -y > /dev/null 2>&1
-  fi
-}
-# --- Check if curl is installed ----
-if [ -f "$PREFIX/bin/curl" ]; then
-  update_curl
-else
-  echo "$running Installing curl pkg.."
-  pkg install curl -y > /dev/null 2>&1
 fi
 
 # --- Prompt the user for input ---
