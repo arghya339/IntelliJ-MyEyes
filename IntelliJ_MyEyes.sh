@@ -186,7 +186,7 @@ if [ $Android -ge "8" ]; then
   if [ "$termuxVersion" != "$latestReleases" ]; then
     echo "$bad Termux app is outdated!"
     echo "$running Downloading Termux app update.."
-    su -c "curl -L --progress-bar -o '/data/local/tmp/termux-app_v${latestReleases}+github-debug_$arch.apk' 'https://github.com/$owner/$repo/releases/download/v$latestReleases/termux-app_v${latestReleases}+github-debug_$arch.apk'"
+    su -c "$PREFIX/bin/curl -L --progress-bar -o '/data/local/tmp/termux-app_v${latestReleases}+github-debug_$arch.apk' 'https://github.com/$owner/$repo/releases/download/v$latestReleases/termux-app_v${latestReleases}+github-debug_$arch.apk'"
     echo "$notice Please rerun this script again after Termux app update!"
     echo "$running Installing app update and restarting Termux app.." && sleep 1
     # Temporary Disable SELinux Enforcing during installation if it not in Permissive
@@ -212,7 +212,7 @@ elif [ $Android -eq "7" ]; then
   if [ "$termuxVersion" != "$lastReleases" ]; then
     echo "$bad Termux app is outdated!"
     echo "$running Downloading Termux app update.."
-    su -c "curl -L --progress-bar -o '/data/local/tmp/termux-app_v${lastReleases}+apt-android-7-github-debug_$arch.apk' 'https://github.com/$owner/$repo/releases/download/v$lastReleases/termux-app_v${lastReleases}+apt-android-7-github-debug_$arch.apk'"
+    su -c "$PREFIX/bin/curl -L --progress-bar -o '/data/local/tmp/termux-app_v${lastReleases}+apt-android-7-github-debug_$arch.apk' 'https://github.com/$owner/$repo/releases/download/v$lastReleases/termux-app_v${lastReleases}+apt-android-7-github-debug_$arch.apk'"
     echo "$notice Please rerun this script again after Termux app update!"
     echo "$running Installing app update and restarting Termux app.." && sleep 1
     # Temporary Disable SELinux Enforcing during installation if it not in Permissive
@@ -238,7 +238,7 @@ elif [ $Android -eq "6" ] || [ $Android -eq "5" ]; then
   if [ "$termuxVersion" != "$lastReleases" ]; then
     echo "$bad Termux app is outdated!"
     echo "$running Downloading Termux app update.."
-    su -c "curl -L --progress-bar -o '/data/local/tmp/termux-app_v${lastReleases}+apt-android-5-github-debug_$arch.apk' 'https://github.com/$owner/$repo/releases/download/v$lastReleases/termux-app_v${lastReleases}+apt-android-5-github-debug_$arch.apk'"
+    su -c "$PREFIX/bin/curl -L --progress-bar -o '/data/local/tmp/termux-app_v${lastReleases}+apt-android-5-github-debug_$arch.apk' 'https://github.com/$owner/$repo/releases/download/v$lastReleases/termux-app_v${lastReleases}+apt-android-5-github-debug_$arch.apk'"
     echo "$notice Please rerun this script again after Termux app update!"
     echo "$running Installing app update and restarting Termux app.." && sleep 1
     # Temporary Disable SELinux Enforcing during installation if it not in Permissive
