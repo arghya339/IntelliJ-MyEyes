@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/usr/bin/dash
 
 # Clone IntelliJ_MyEyes.sh: ~ curl -o "$HOME/IntelliJ_MyEyes.sh" "https://raw.githubusercontent.com/arghya339/IntelliJ-MyEyes/refs/heads/main/IntelliJ_MyEyes.sh"
 # Usage instructions: ~ sh $HOME/IntelliJ_MyEyes.sh
@@ -351,7 +351,7 @@ if proot-distro login ubuntu -- which hashcat > /dev/null 2>&1; then
 else
   echo "$notice HashCat binary not found inside PRoot Ubuntu!"
   echo "$running installing HashCat by rerunning 'IntelliJ MyEyes' script again.."
-  bash "$fullScriptPath"
+  dash "$fullScriptPath"
   exit 1  # exit from loop
 fi
 
@@ -501,7 +501,7 @@ case "$userInput" in
         # If user says Yes, rerun the script
         clear
         echo "$running Rerunning 'IntelliJ MyEyes' script again.."
-        bash "$fullScriptPath"
+        dash "$fullScriptPath"
         exit 1  # exit from loop
         ;;
     [Nn]*)
