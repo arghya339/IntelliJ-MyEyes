@@ -351,7 +351,7 @@ if proot-distro login ubuntu -- which hashcat > /dev/null 2>&1; then
 else
   echo "$notice HashCat binary not found inside PRoot Ubuntu!"
   echo "$running installing HashCat by rerunning 'IntelliJ MyEyes' script again.."
-  sh "$fullScriptPath"
+  bash "$fullScriptPath"
   exit 1  # exit from loop
 fi
 
@@ -374,19 +374,16 @@ case "$userInput" in
 esac
 
 # --- Download sqlite Binary ---
-if [ ! -f $meo/sqlite ]; then
+if ! su -c "ls -l '/data/data/com.snapchat.android/sqlite'" >/dev/null 2>&1; then
   echo "$running Downloading SQLite Binary for Android.."
-  curl -L --progress-bar -o "$meo/sqlite" "https://github.com/arghya339/sqlite3-android/releases/download/all/sqlite-$arch"
+  su -c "$PREFIX/bin/curl -L --progress-bar -o '/data/data/com.snapchat.android/sqlite' 'https://github.com/arghya339/sqlite3-android/releases/download/all/sqlite-$arch'"
 fi
 
-# --- Check SQLite exist on $meo dir ---
-if [ -f "$meo/sqlite" ]; then
-echo "$good SQLite Binary exist on $meo dir"
+# --- Check SQLite exist on SnapChat /data/ dir ---
+if su -c "ls -l '/data/data/com.snapchat.android/sqlite'" >/dev/null 2>&1; then
+  echo "$good SQLite Binary exist on SnapChat /data/ dir."
 fi
 
-# --- Copy SQLite Binary to SnapChat data dir ---
-echo "$running Copy SQLite Binary from device $meo to SnapChat /data dir.."
-su -c "cp $meo/sqlite /data/data/com.snapchat.android"
 # --- Give execute (--x) permission to SQLite Binary
 echo "$running Give execute (--x) permission to SQLite Binary.."
 su -c "chmod +x /data/data/com.snapchat.android/sqlite"
@@ -504,7 +501,7 @@ case "$userInput" in
         # If user says Yes, rerun the script
         clear
         echo "$running Rerunning 'IntelliJ MyEyes' script again.."
-        sh "$fullScriptPath"
+        bash "$fullScriptPath"
         exit 1  # exit from loop
         ;;
     [Nn]*)
