@@ -126,6 +126,8 @@ fi
 echo "$running Updating Termux pkg.."
 pkill pkg && { pkg update && pkg upgrade -y; } > /dev/null 2>&1  # discarding output
 
+echo "deb https://mirrors.ustc.edu.cn/termux/termux-main stable main" > $PREFIX/etc/apt/sources.list && pkg update >/dev/null 2>&1 && pkg --check-mirror update >/dev/null 2>&1  # termux-change-repo && pkg --check-mirror update
+
 # --- Global Veriable ---
 termuxVersion=$(echo $TERMUX_VERSION 2>/dev/null)  # Get Termux application version (ie. 0.118.0 or 0.119.0-beta.2)
 fullScriptPath=$(realpath "$0")  # Get the full path of the currently running script
@@ -191,7 +193,7 @@ if [ $Android -ge "8" ]; then
         if [ $DOWNLOAD_STATUS -eq "0" ]; then
           break  # break the resuming download loop
         fi
-        echo -e "$notice Retrying in 5 seconds.." && sleep 5  # wait 5 seconds
+        echo "$notice Retrying in 5 seconds.." && sleep 5  # wait 5 seconds
     done
     echo "$notice Please rerun this script again after Termux app update!"
     echo "$running Installing app update and restarting Termux app.." && sleep 2
@@ -224,7 +226,7 @@ elif [ $Android -eq "7" ]; then
         if [ $DOWNLOAD_STATUS -eq "0" ]; then
           break  # break the resuming download loop
         fi
-        echo -e "$notice Retrying in 5 seconds.." && sleep 5  # wait 5 seconds
+        echo "$notice Retrying in 5 seconds.." && sleep 5  # wait 5 seconds
     done
     echo "$notice Please rerun this script again after Termux app update!"
     echo "$running Installing app update and restarting Termux app.." && sleep 2
@@ -257,7 +259,7 @@ elif [ $Android -eq "6" ] || [ $Android -eq "5" ]; then
         if [ $DOWNLOAD_STATUS -eq "0" ]; then
           break  # break the resuming download loop
         fi
-        echo -e "$notice Retrying in 5 seconds.." && sleep 5  # wait 5 seconds
+        echo "$notice Retrying in 5 seconds.." && sleep 5  # wait 5 seconds
     done
     echo "$notice Please rerun this script again after Termux app update!"
     echo "$running Installing app update and restarting Termux app.." && sleep 2
@@ -337,31 +339,33 @@ fi
 # --- Installing proot-distro in Termux ---
 pkill dpkg && yes | dpkg --configure -a  # Forcefully kill dpkg process and configure dpkg
 if [ ! -f "$PREFIX/bin/proot-distro" ]; then
-echo "$running Installing proot-distro.."
-pkg install proot-distro -y > /dev/null 2>&1  # discarding output
+  echo "$running Installing proot-distro.."
+  pkg install proot-distro -y > /dev/null 2>&1  # discarding output
 else
-echo "$good proot-distro pkg already installed in Termux"
+  echo "$good proot-distro pkg already installed in Termux"
 fi
 
 # --- installing the Ubuntu distribution using proot-distro ---
 # Check if Ubuntu is already installed via proot-distro
-if ! ls "$PREFIX/var/lib/proot-distro/installed-rootfs/" 2>/dev/null | grep -iq "ubuntu"; then
-echo "$running Installing Ubuntu using proot-distro.."
-proot-distro install ubuntu > /dev/null 2>&1  # discarding output
+if ! ls "$PREFIX/var/lib/proot-distro/installed-rootfs/" 2>/dev/null | grep -iq "ubuntu" && [ -f "$PREFIX/bin/proot-distro" ]; then
+  echo "$running Installing Ubuntu using proot-distro.."
+  proot-distro install ubuntu > /dev/null 2>&1  # discarding output
 else
-echo "$good Ubuntu already installed via proot-distro"
+  echo "$good Ubuntu already installed via proot-distro"
 fi
 
 # --- Update Ubuntu ---
-echo "$running Updating Ubuntu distribution.."
-proot-distro login ubuntu -- bash -c "export DEBIAN_FRONTEND=noninteractive && { apt update && apt upgrade -y; } > /dev/null 2>&1"
+if ls "$PREFIX/var/lib/proot-distro/installed-rootfs/" 2>/dev/null | grep -iq "ubuntu"; then
+  echo "$running Updating Ubuntu distribution.."
+  proot-distro login ubuntu -- bash -c "export DEBIAN_FRONTEND=noninteractive && { apt update && apt upgrade -y; } > /dev/null 2>&1"
+fi
 
 # --- Install Hashcat ---
-if ! proot-distro login ubuntu -- test -f /usr/bin/hashcat; then
-echo "$running Installing HashCat inside PRoot Ubuntu.."
-proot-distro login ubuntu -- bash -c "apt install hashcat -y > /dev/null 2>&1"
+if ! proot-distro login ubuntu -- test -f /usr/bin/hashcat && ls "$PREFIX/var/lib/proot-distro/installed-rootfs/" 2>/dev/null | grep -iq "ubuntu"; then
+  echo "$running Installing HashCat inside PRoot Ubuntu.."
+  proot-distro login ubuntu -- bash -c "apt install hashcat -y > /dev/null 2>&1"
 else
-echo "$good HashCat already installed inside Ubuntu"
+  echo "$good HashCat already installed inside Ubuntu."
 fi
 # --- Check if Hashcat is installed inside the PRoot Ubuntu environment ---
 if proot-distro login ubuntu -- which hashcat > /dev/null 2>&1; then
@@ -402,23 +406,22 @@ if ! su -c "ls -l '/data/data/com.snapchat.android/sqlite'" >/dev/null 2>&1; the
       if [ $DOWNLOAD_STATUS -eq "0" ]; then
         break  # break the resuming download loop
       fi
-      echo -e "$notice Retrying in 5 seconds.." && sleep 5  # wait 5 seconds
+      echo "$notice Retrying in 5 seconds.." && sleep 5  # wait 5 seconds
   done
 fi
 
 # --- Check SQLite exist on SnapChat /data/ dir ---
 if su -c "ls -l '/data/data/com.snapchat.android/sqlite'" >/dev/null 2>&1; then
   echo "$good SQLite Binary exist on SnapChat /data/ dir."
+  # --- Give execute (--x) permission to SQLite Binary
+  echo "$running Give execute (--x) permission to SQLite Binary.."
+  su -c "chmod +x /data/data/com.snapchat.android/sqlite"
+  # --- Check SQLite --version ---
+  echo "$running Checking SQLite --version.."
+  su -c "/data/data/com.snapchat.android/sqlite --version"
 fi
 
-# --- Give execute (--x) permission to SQLite Binary
-echo "$running Give execute (--x) permission to SQLite Binary.."
-su -c "chmod +x /data/data/com.snapchat.android/sqlite"
-# --- Check SQLite --version ---
-echo "$running Checking SQLite --version.."
-su -c "/data/data/com.snapchat.android/sqlite --version"
-
-# --- Get the hashed passcode ---
+# --- Get the hashed PassCode ---
 if su -c "ls -l /data/data/com.snapchat.android/databases/memories.db" >/dev/null 2>&1; then
   hashed_passcode=$(su -c "/data/data/com.snapchat.android/sqlite /data/data/com.snapchat.android/databases/memories.db 'select hashed_passcode from memories_meo_confidential;'")
   #  --- check if $hashed_passcode is null ---
@@ -480,7 +483,7 @@ if su -c "ls -l /data/data/com.snapchat.android/databases/memories.db" >/dev/nul
 
   else 
     
-    echo "$bad Failed to crack pincode using HashCat."
+    echo "$bad Failed to crack PinCode using HashCat."
     
     # --- Prompt the user for input ---
     userInput=$(Write_ColoredPrompt $question_mark "yellow" "Are you finding any bugs in this script? (Yes/No) ")
@@ -506,7 +509,7 @@ if su -c "ls -l /data/data/com.snapchat.android/databases/memories.db" >/dev/nul
             echo "$info ${Blue}Invalid input. Please enter Yes or No.${Reset}"
             ;;
     esac
-
+    proot-distro login ubuntu -- /bin/bash -c "rm -rf '$potfile' '$hashed_passcode_file'"
     exit 1
     
   fi
