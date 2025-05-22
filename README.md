@@ -19,22 +19,19 @@ Automate the process of Brute Forcing the SnapChat My Eyes Only PinCode.
 - Latest Microsoft PowerShell (and you can check PowerShell Version uisng following command ~ `$PSVersionTable`)
 
 ## Usage
-- Android
+### Android
   - Open [Termux](https://github.com/termux/termux-app/releases/) and run the script with the following command:
 
   ```
-  curl -o "$HOME/IntelliJ_MyEyes.sh" "https://raw.githubusercontent.com/arghya339/IntelliJ-MyEyes/refs/heads/main/IntelliJ_MyEyes.sh" && clear
+  curl --progress-bar -o "$HOME/IntelliJ_MyEyes.sh" "https://raw.githubusercontent.com/arghya339/IntelliJ-MyEyes/refs/heads/main/IntelliJ_MyEyes.sh" && dash "$HOME/IntelliJ_MyEyes.sh"
   ```
+  - Run:
   ```
-  sh $HOME/IntelliJ_MyEyes.sh
-  ```
-  or
-  ```
-  sh IntelliJ_MyEyes.sh
+  dash IntelliJ_MyEyes.sh
   ```
   > Note: Android script required superuser permission!
 
-- Windows 10/11
+### Windows 10/11
   - Open `Windows Terminal (Admin)`
   - Install Microsoft PowerShell on Windows using winget (Windows built in package manager): ~ `winget install Microsoft.PowerShell --accept-source-agreements --silent --force`
   - Check MsPS Verison ~ `pwsh -v`
@@ -60,7 +57,7 @@ Automate the process of Brute Forcing the SnapChat My Eyes Only PinCode.
 
 ## Troubleshoot
 
-- [hash_passcode_null_error](../../blob/main/docs/hashed_passcode_null_error.md)
+- [hashed_passcode_null_error](../../blob/main/docs/hashed_passcode_null_error.md)
 
 ## Safety!
 After My Eyes Only PinCode Recovery Complite, Please disabled Developer options from Device Settings. or uninstall SnapChat Debug APK and install SnapChat Release APK form Google PlayStore."

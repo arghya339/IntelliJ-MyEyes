@@ -1,7 +1,7 @@
 #!/usr/bin/dash
 
-# Clone IntelliJ_MyEyes.sh: ~ curl -o "$HOME/IntelliJ_MyEyes.sh" "https://raw.githubusercontent.com/arghya339/IntelliJ-MyEyes/refs/heads/main/IntelliJ_MyEyes.sh"
-# Usage instructions: ~ sh $HOME/IntelliJ_MyEyes.sh
+# Clone IntelliJ_MyEyes.sh: ~ curl --progress-bar -o "$HOME/IntelliJ_MyEyes.sh" "https://raw.githubusercontent.com/arghya339/IntelliJ-MyEyes/refs/heads/main/IntelliJ_MyEyes.sh"
+# Usage instructions: ~ dash $HOME/IntelliJ_MyEyes.sh
 
 # Colored log indicators
 good="\033[92;1m[✔]\033[0m"
@@ -129,7 +129,6 @@ pkill pkg && { pkg update && pkg upgrade -y; } > /dev/null 2>&1  # discarding ou
 # --- Global Veriable ---
 termuxVersion=$(echo $TERMUX_VERSION 2>/dev/null)  # Get Termux application version (ie. 0.118.0 or 0.119.0-beta.2)
 fullScriptPath=$(realpath "$0")  # Get the full path of the currently running script
-bin="$PREFIX/bin"  # Termux $PREFIX/bin dir
 if [ "$(su -c 'getenforce 2>/dev/null')" = "Enforcing" ]; then
   su -c "setenforce 0"  # set SELinux to Permissive mode to unblock unauthorized operations
   package=$(su -c "pm list packages | grep com.snapchat.android" 2>/dev/null)  # SnapChat packages list
@@ -137,7 +136,7 @@ if [ "$(su -c 'getenforce 2>/dev/null')" = "Enforcing" ]; then
 else
   package=$(su -c "pm list packages | grep 'com.snapchat.android'" 2>/dev/null)  # SnapChat packages list
 fi
-meo="$HOME/meo"  # $meo dir in Termux $HOME path
+meo="$HOME/meo"  # meo dir inside Termux $HOME dir
 Enforcing="$meo/Enforcing"  # Enforcing file
 outdatedPKG=$(apt list --upgradable 2>/dev/null)  # list of outdated pkg
 Android=$(getprop ro.build.version.release)
@@ -186,9 +185,16 @@ if [ $Android -ge "8" ]; then
   if [ "$termuxVersion" != "$latestReleases" ]; then
     echo "$bad Termux app is outdated!"
     echo "$running Downloading Termux app update.."
-    su -c "$PREFIX/bin/curl -L --progress-bar -o '/data/local/tmp/termux-app_v${latestReleases}+github-debug_$arch.apk' 'https://github.com/$owner/$repo/releases/download/v$latestReleases/termux-app_v${latestReleases}+github-debug_$arch.apk'"
+    while true; do
+        su -c "$PREFIX/bin/curl -L --progress-bar -C - -o '/data/local/tmp/termux-app_v${latestReleases}+github-debug_$arch.apk' 'https://github.com/$owner/$repo/releases/download/v$latestReleases/termux-app_v${latestReleases}+github-debug_$arch.apk'"
+        DOWNLOAD_STATUS=$?
+        if [ $DOWNLOAD_STATUS -eq "0" ]; then
+          break  # break the resuming download loop
+        fi
+        echo -e "$notice Retrying in 5 seconds.." && sleep 5  # wait 5 seconds
+    done
     echo "$notice Please rerun this script again after Termux app update!"
-    echo "$running Installing app update and restarting Termux app.." && sleep 1
+    echo "$running Installing app update and restarting Termux app.." && sleep 2
     # Temporary Disable SELinux Enforcing during installation if it not in Permissive
     if [ "$(su -c 'getenforce 2>/dev/null')" = "Enforcing" ]; then
       touch $Enforcing
@@ -212,9 +218,16 @@ elif [ $Android -eq "7" ]; then
   if [ "$termuxVersion" != "$lastReleases" ]; then
     echo "$bad Termux app is outdated!"
     echo "$running Downloading Termux app update.."
-    su -c "$PREFIX/bin/curl -L --progress-bar -o '/data/local/tmp/termux-app_v${lastReleases}+apt-android-7-github-debug_$arch.apk' 'https://github.com/$owner/$repo/releases/download/v$lastReleases/termux-app_v${lastReleases}+apt-android-7-github-debug_$arch.apk'"
+    while true; do
+        su -c "$PREFIX/bin/curl -L --progress-bar -C - -o '/data/local/tmp/termux-app_v${lastReleases}+apt-android-7-github-debug_$arch.apk' 'https://github.com/$owner/$repo/releases/download/v$lastReleases/termux-app_v${lastReleases}+apt-android-7-github-debug_$arch.apk'"
+        DOWNLOAD_STATUS=$?
+        if [ $DOWNLOAD_STATUS -eq "0" ]; then
+          break  # break the resuming download loop
+        fi
+        echo -e "$notice Retrying in 5 seconds.." && sleep 5  # wait 5 seconds
+    done
     echo "$notice Please rerun this script again after Termux app update!"
-    echo "$running Installing app update and restarting Termux app.." && sleep 1
+    echo "$running Installing app update and restarting Termux app.." && sleep 2
     # Temporary Disable SELinux Enforcing during installation if it not in Permissive
     if [ "$(su -c 'getenforce 2>/dev/null')" = "Enforcing" ]; then
       touch $Enforcing
@@ -238,9 +251,16 @@ elif [ $Android -eq "6" ] || [ $Android -eq "5" ]; then
   if [ "$termuxVersion" != "$lastReleases" ]; then
     echo "$bad Termux app is outdated!"
     echo "$running Downloading Termux app update.."
-    su -c "$PREFIX/bin/curl -L --progress-bar -o '/data/local/tmp/termux-app_v${lastReleases}+apt-android-5-github-debug_$arch.apk' 'https://github.com/$owner/$repo/releases/download/v$lastReleases/termux-app_v${lastReleases}+apt-android-5-github-debug_$arch.apk'"
+    while true; do
+        su -c "$PREFIX/bin/curl -L --progress-bar -o -C - '/data/local/tmp/termux-app_v${lastReleases}+apt-android-5-github-debug_$arch.apk' 'https://github.com/$owner/$repo/releases/download/v$lastReleases/termux-app_v${lastReleases}+apt-android-5-github-debug_$arch.apk'"
+        DOWNLOAD_STATUS=$?
+        if [ $DOWNLOAD_STATUS -eq "0" ]; then
+          break  # break the resuming download loop
+        fi
+        echo -e "$notice Retrying in 5 seconds.." && sleep 5  # wait 5 seconds
+    done
     echo "$notice Please rerun this script again after Termux app update!"
-    echo "$running Installing app update and restarting Termux app.." && sleep 1
+    echo "$running Installing app update and restarting Termux app.." && sleep 2
     # Temporary Disable SELinux Enforcing during installation if it not in Permissive
     if [ "$(su -c 'getenforce 2>/dev/null')" = "Enforcing" ]; then
       touch $Enforcing
@@ -316,7 +336,7 @@ fi
 # --- install dependency ---
 # --- Installing proot-distro in Termux ---
 pkill dpkg && yes | dpkg --configure -a  # Forcefully kill dpkg process and configure dpkg
-if [ ! -f "/data/data/com.termux/files/usr/bin/proot-distro" ]; then
+if [ ! -f "$PREFIX/bin/proot-distro" ]; then
 echo "$running Installing proot-distro.."
 pkg install proot-distro -y > /dev/null 2>&1  # discarding output
 else
@@ -373,10 +393,17 @@ case "$userInput" in
         ;;
 esac
 
-# --- Download sqlite Binary ---
+# --- Download SQLite Binary ---
 if ! su -c "ls -l '/data/data/com.snapchat.android/sqlite'" >/dev/null 2>&1; then
-  echo "$running Downloading SQLite Binary for Android.."
-  su -c "$PREFIX/bin/curl -L --progress-bar -o '/data/data/com.snapchat.android/sqlite' 'https://github.com/arghya339/sqlite3-android/releases/download/all/sqlite-$arch'"
+  echo "$running Downloading SQLite Binary for Android from ${Blue}https://github.com/arghya339/sqlite3-android/releases/download/all/sqlite-$arch${Reset}.."
+  while true; do
+      su -c "$PREFIX/bin/curl -L --progress-bar -C - -o '/data/data/com.snapchat.android/sqlite' 'https://github.com/arghya339/sqlite3-android/releases/download/all/sqlite-$arch'"
+      DOWNLOAD_STATUS=$?
+      if [ $DOWNLOAD_STATUS -eq "0" ]; then
+        break  # break the resuming download loop
+      fi
+      echo -e "$notice Retrying in 5 seconds.." && sleep 5  # wait 5 seconds
+  done
 fi
 
 # --- Check SQLite exist on SnapChat /data/ dir ---
@@ -418,9 +445,9 @@ if su -c "ls -l /data/data/com.snapchat.android/databases/memories.db" >/dev/nul
   echo "$running Brute forcing hash using HashCat.."
   # echo "$HOME/meo/hashed_passcode.txt file content:" && proot-distro login ubuntu -- /bin/bash -c "cat $hashed_passcode_file"
   proot-distro login ubuntu -- /bin/bash -c "hashcat -m 3200 -a 3 '$hashed_passcode_file' '?d?d?d?d' --potfile-disable --force -o '$potfile' > /dev/null 2>&1"
-# using --potfile-disable flag to Temporarily ignore the potfile for the current session becouse i dont know hashcat default potfile path
-# ---  Check Previously Cracked Hashes ---
-# proot-distro login ubuntu -- /bin/bash -c "hashcat --show -m 3200 '$hashed_passcode_file'"
+  # using --potfile-disable flag to Temporarily ignore the potfile for the current session becouse i dont know hashcat default potfile path
+  # ---  Check Previously Cracked Hashes ---
+  # proot-distro login ubuntu -- /bin/bash -c "hashcat --show -m 3200 '$hashed_passcode_file'"
 
   # --- Extract pincode from potfile ---
   pincode=$(proot-distro login ubuntu -- /bin/bash -c "grep -o '[^:]*$' '$potfile' | tail -n1") > /dev/null 2>&1
