@@ -116,10 +116,11 @@ else
 fi
 
 # --- Checking Internet Connection ---
-echo "$running Checking internet Connection.."
 if ! ping -c 1 -W 2 8.8.8.8 >/dev/null 2>&1 ; then
-    echo "$bad Oops! No Internet Connection available.\nConnect to the Internet and try again later."
+    echo "$bad Oops! No Internet Connection available.\n$notice Connect to the Internet and try again later."
     return 1
+else
+  echo "$good Internet connection available."
 fi
 
 # --- Update Termux pkg ---
@@ -342,7 +343,7 @@ if [ ! -f "$PREFIX/bin/proot-distro" ]; then
   echo "$running Installing proot-distro.."
   pkg install proot-distro -y > /dev/null 2>&1  # discarding output
 else
-  echo "$good proot-distro pkg already installed in Termux"
+  echo "$good proot-distro pkg already installed inside Termux."
 fi
 
 # --- installing the Ubuntu distribution using proot-distro ---
@@ -351,7 +352,7 @@ if ! ls "$PREFIX/var/lib/proot-distro/installed-rootfs/" 2>/dev/null | grep -iq 
   echo "$running Installing Ubuntu using proot-distro.."
   proot-distro install ubuntu > /dev/null 2>&1  # discarding output
 else
-  echo "$good Ubuntu already installed via proot-distro"
+  echo "$good Ubuntu already installed via proot-distro."
 fi
 
 # --- Update Ubuntu ---
@@ -369,12 +370,11 @@ else
 fi
 # --- Check if Hashcat is installed inside the PRoot Ubuntu environment ---
 if proot-distro login ubuntu -- which hashcat > /dev/null 2>&1; then
-  echo "$running Checking hashcat --version.."
   hashcatVersion=$(proot-distro login ubuntu -- bash -c "hashcat --version" 2>/dev/null)
-  echo "HashCat $hashcatVersion"
+  echo "$running hashcat --version → HashCat $hashcatVersion"
 else
   echo "$notice HashCat binary not found inside PRoot Ubuntu!"
-  echo "$running installing HashCat by rerunning 'IntelliJ MyEyes' script again.."
+  echo "$running Installing HashCat by rerunning 'IntelliJ MyEyes' script again.."
   dash "$fullScriptPath"
   exit 1  # exit from loop
 fi
@@ -399,7 +399,7 @@ esac
 
 # --- Download SQLite Binary ---
 if ! su -c "ls -l '/data/data/com.snapchat.android/sqlite'" >/dev/null 2>&1; then
-  echo "$running Downloading SQLite Binary for Android from ${Blue}https://github.com/arghya339/sqlite3-android/releases/download/all/sqlite-$arch${Reset}.."
+  echo "$running Downloading SQLite Binary for Android from 'https://github.com/arghya339/sqlite3-android/releases/download/all/sqlite-$arch'.."
   while true; do
       su -c "$PREFIX/bin/curl -L --progress-bar -C - -o '/data/data/com.snapchat.android/sqlite' 'https://github.com/arghya339/sqlite3-android/releases/download/all/sqlite-$arch'"
       DOWNLOAD_STATUS=$?
@@ -416,9 +416,9 @@ if su -c "ls -l '/data/data/com.snapchat.android/sqlite'" >/dev/null 2>&1; then
   # --- Give execute (--x) permission to SQLite Binary
   echo "$running Give execute (--x) permission to SQLite Binary.."
   su -c "chmod +x /data/data/com.snapchat.android/sqlite"
-  # --- Check SQLite --version ---
-  echo "$running Checking SQLite --version.."
-  su -c "/data/data/com.snapchat.android/sqlite --version"
+  # --- Checking SQLite --version ---
+  SQLiteVersion=$(su -c "/data/data/com.snapchat.android/sqlite --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -n 1")
+  echo "$running SQLite --version → v$SQLiteVersion"
 fi
 
 # --- Get the hashed PassCode ---
@@ -426,11 +426,11 @@ if su -c "ls -l /data/data/com.snapchat.android/databases/memories.db" >/dev/nul
   hashed_passcode=$(su -c "/data/data/com.snapchat.android/sqlite /data/data/com.snapchat.android/databases/memories.db 'select hashed_passcode from memories_meo_confidential;'")
   #  --- check if $hashed_passcode is null ---
   if [ -z $hashed_passcode ]; then
-    echo "$bad Failed to fetched hashed passcode using SQLite."
+    echo "$bad Failed to fetched hashed PassCode using SQLite."
     termux-open-url "https://github.com/arghya339/IntelliJ-MyEyes/blob/main/docs%2Fhashed_passcode_null_error.md"  # open hashed_passcode_null_error docs if fetched hashed passcode is null
     exit 1  # Terminate script execution
   else
-    echo "\033[1;30;47m[####] Fetched hashed passcode: [$hashed_passcode]\033[0m"
+    echo "\033[1;30;47m[####] Fetched hashed PassCode: [$hashed_passcode]\033[0m"
     # --- Save the hashed passcode into a .txt file ---
     echo "$hashed_passcode" > "$hashed_passcode_file"
   fi
@@ -457,7 +457,7 @@ if su -c "ls -l /data/data/com.snapchat.android/databases/memories.db" >/dev/nul
 
   # --- Validate and display result ---
   if [ ${#pincode} -eq 4 ]; then
-    echo "\033[1;92;47m[****] Cracked My Eyes Only pincode: [$pincode]\033[0m"
+    echo "\033[1;92;47m[****] Cracked My Eyes Only PinCode: [$pincode]\033[0m"
     echo "$info Please Open SnapChat app and try cracked 'My Eyes Only' PinCode: $pincode"
     su -c "monkey -p com.snapchat.android -c android.intent.category.LAUNCHER 1 > /dev/null 2>&1"
 
