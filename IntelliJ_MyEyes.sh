@@ -1,7 +1,7 @@
-#!/usr/bin/dash
+#!/usr/bin/bash
 
 # Clone IntelliJ_MyEyes.sh: ~ curl --progress-bar -o "$HOME/IntelliJ_MyEyes.sh" "https://raw.githubusercontent.com/arghya339/IntelliJ-MyEyes/refs/heads/main/IntelliJ_MyEyes.sh"
-# Usage instructions: ~ dash $HOME/IntelliJ_MyEyes.sh
+# Usage instructions: ~ bash $HOME/IntelliJ_MyEyes.sh
 
 # Colored log indicators
 good="\033[92;1m[✔]\033[0m"
@@ -73,34 +73,34 @@ eye=$(cat <<'EOF'
 EOF
 )
 # Print the eye shape with the specified foreground color
-echo "$Green$eye$Reset"
+echo -e "$Green$eye$Reset"
 echo ""  # Space
 
 # Colored log indicators with color codes
 echo "--- Colored log indicators ---"
-echo "$good - good"
-echo "$bad - bad"
-echo "$info - info"
-echo "$running - running"
-echo "$notice - notice"
+echo -e "$good - good"
+echo -e "$bad - bad"
+echo -e "$info - info"
+echo -e "$running - running"
+echo -e "$notice - notice"
 echo ""  # Space
 
 # --- Termux Storage Permission Check Logic ---
 if [ -d "$HOME/storage/shared" ]; then
-    echo "${good} Storage permission already granted via Termux API."
+    echo -e "${good} Storage permission already granted via Termux API."
 else
     # Attempt to list /storage/emulated/0 to trigger the error
     error=$(ls /storage/emulated/0 2>&1)
     expected_error="ls: cannot open directory '/storage/emulated/0': Permission denied"
 
     if echo "$error" | grep -qF "$expected_error"; then
-        echo "${notice} Storage permission not granted. Running termux-setup-storage.."
+        echo -e "${notice} Storage permission not granted. Running termux-setup-storage.."
         termux-setup-storage
         exit 1  # Exit the script after handling the error
     elif echo "$error" | grep -q "^Android"; then
-        echo "$good Storage permission already granted via system Settings."
+        echo -e "$good Storage permission already granted via system Settings."
     else
-        echo "${bad} Unknown error: $error"
+        echo -e "${bad} Unknown error: $error"
         exit 1  # Exit on any other error
     fi
 fi
@@ -108,23 +108,23 @@ fi
 # --- Termux SuperUser Permission Check ---
 if su -c "id" >/dev/null 2>&1; then
 # -c allows you to run a single command as root without opening an interactive root shell.
-  echo "$good SU permission is granted."
+  echo -e "$good SU permission is granted."
 else
-  echo "$bad SU permission is not granted."
-  echo "$notice Please open the Magisk/KernelSU/APatch app and manually grant root permissions to Termux."
+  echo -e "$bad SU permission is not granted."
+  echo -e "$notice Please open the Magisk/KernelSU/APatch app and manually grant root permissions to Termux."
   return 1
 fi
 
 # --- Checking Internet Connection ---
 if ! ping -c 1 -W 2 8.8.8.8 >/dev/null 2>&1 ; then
-    echo "$bad Oops! No Internet Connection available.\n$notice Connect to the Internet and try again later."
+    echo -e "$bad Oops! No Internet Connection available.\n$notice Connect to the Internet and try again later."
     return 1
 else
-  echo "$good Internet connection available."
+  echo -e "$good Internet connection available."
 fi
 
 # --- Update Termux pkg ---
-echo "$running Updating Termux pkg.."
+echo -e "$running Updating Termux pkg.."
 pkill pkg && { pkg update && pkg upgrade -y; } > /dev/null 2>&1  # discarding output
 
 echo "deb https://mirrors.ustc.edu.cn/termux/termux-main stable main" > $PREFIX/etc/apt/sources.list && pkg update >/dev/null 2>&1 && pkg --check-mirror update >/dev/null 2>&1  # termux-change-repo && pkg --check-mirror update
@@ -154,7 +154,7 @@ mkdir -p "$meo"
 # --- curl pkg update function ---
 update_curl() {
   if echo $outdatedPKG | grep -q "^curl/" 2>/dev/null; then
-    echo "$running Upgrading curl pkg.."
+    echo -e "$running Upgrading curl pkg.."
     pkg upgrade curl -y > /dev/null 2>&1
   fi
 }
@@ -162,14 +162,14 @@ update_curl() {
 if [ -f "$PREFIX/bin/curl" ]; then
   update_curl
 else
-  echo "$running Installing curl pkg.."
+  echo -e "$running Installing curl pkg.."
   pkg install curl -y > /dev/null 2>&1
 fi
 
 # --- jq pkg update function ---
 update_jq() {
   if echo $outdatedPKG | grep -q "^jq/" 2>/dev/null; then
-    echo "$running Upgrading jq pkg.."
+    echo -e "$running Upgrading jq pkg.."
     pkg upgrade jq -y > /dev/null 2>&1
   fi
 }
@@ -177,7 +177,7 @@ update_jq() {
 if [ -f "$PREFIX/bin/jq" ]; then
   update_jq
 else
-  echo "$running Installing jq pkg.."
+  echo -e "$running Installing jq pkg.."
   pkg install jq -y > /dev/null 2>&1
 fi
 
@@ -186,18 +186,18 @@ if [ $Android -ge "8" ]; then
   owner="termux" && repo="termux-app"
   latestReleases=$(curl -s https://api.github.com/repos/$owner/$repo/releases/latest | jq -r '.tag_name | sub("^v"; "")')  # 0.118.0
   if [ "$termuxVersion" != "$latestReleases" ]; then
-    echo "$bad Termux app is outdated!"
-    echo "$running Downloading Termux app update.."
+    echo -e "$bad Termux app is outdated!"
+    echo -e "$running Downloading Termux app update.."
     while true; do
         su -c "$PREFIX/bin/curl -L --progress-bar -C - -o '/data/local/tmp/termux-app_v${latestReleases}+github-debug_$arch.apk' 'https://github.com/$owner/$repo/releases/download/v$latestReleases/termux-app_v${latestReleases}+github-debug_$arch.apk'"
         DOWNLOAD_STATUS=$?
         if [ $DOWNLOAD_STATUS -eq "0" ]; then
           break  # break the resuming download loop
         fi
-        echo "$notice Retrying in 5 seconds.." && sleep 5  # wait 5 seconds
+        echo -e "$notice Retrying in 5 seconds.." && sleep 5  # wait 5 seconds
     done
-    echo "$notice Please rerun this script again after Termux app update!"
-    echo "$running Installing app update and restarting Termux app.." && sleep 2
+    echo -e "$notice Please rerun this script again after Termux app update!"
+    echo -e "$running Installing app update and restarting Termux app.." && sleep 3
     # Temporary Disable SELinux Enforcing during installation if it not in Permissive
     if [ "$(su -c 'getenforce 2>/dev/null')" = "Enforcing" ]; then
       touch $Enforcing
@@ -219,18 +219,18 @@ elif [ $Android -eq "7" ]; then
   owner="termux" && repo="termux-app"
   lastReleases=$(curl -s https://api.github.com/repos/$owner/$repo/tags | jq -r '.[0].name | sub("^v"; "")')  # 0.119.0-beta.2
   if [ "$termuxVersion" != "$lastReleases" ]; then
-    echo "$bad Termux app is outdated!"
-    echo "$running Downloading Termux app update.."
+    echo -e "$bad Termux app is outdated!"
+    echo -e "$running Downloading Termux app update.."
     while true; do
         su -c "$PREFIX/bin/curl -L --progress-bar -C - -o '/data/local/tmp/termux-app_v${lastReleases}+apt-android-7-github-debug_$arch.apk' 'https://github.com/$owner/$repo/releases/download/v$lastReleases/termux-app_v${lastReleases}+apt-android-7-github-debug_$arch.apk'"
         DOWNLOAD_STATUS=$?
         if [ $DOWNLOAD_STATUS -eq "0" ]; then
           break  # break the resuming download loop
         fi
-        echo "$notice Retrying in 5 seconds.." && sleep 5  # wait 5 seconds
+        echo -e "$notice Retrying in 5 seconds.." && sleep 5  # wait 5 seconds
     done
-    echo "$notice Please rerun this script again after Termux app update!"
-    echo "$running Installing app update and restarting Termux app.." && sleep 2
+    echo -e "$notice Please rerun this script again after Termux app update!"
+    echo -e "$running Installing app update and restarting Termux app.." && sleep 3
     # Temporary Disable SELinux Enforcing during installation if it not in Permissive
     if [ "$(su -c 'getenforce 2>/dev/null')" = "Enforcing" ]; then
       touch $Enforcing
@@ -252,18 +252,18 @@ elif [ $Android -eq "6" ] || [ $Android -eq "5" ]; then
   owner="termux" && repo="termux-app"
   lastReleases=$(curl -s https://api.github.com/repos/$owner/$repo/tags | jq -r '.[0].name | sub("^v"; "")')  # 0.119.0-beta.2
   if [ "$termuxVersion" != "$lastReleases" ]; then
-    echo "$bad Termux app is outdated!"
-    echo "$running Downloading Termux app update.."
+    echo -e "$bad Termux app is outdated!"
+    echo -e "$running Downloading Termux app update.."
     while true; do
         su -c "$PREFIX/bin/curl -L --progress-bar -o -C - '/data/local/tmp/termux-app_v${lastReleases}+apt-android-5-github-debug_$arch.apk' 'https://github.com/$owner/$repo/releases/download/v$lastReleases/termux-app_v${lastReleases}+apt-android-5-github-debug_$arch.apk'"
         DOWNLOAD_STATUS=$?
         if [ $DOWNLOAD_STATUS -eq "0" ]; then
           break  # break the resuming download loop
         fi
-        echo "$notice Retrying in 5 seconds.." && sleep 5  # wait 5 seconds
+        echo -e "$notice Retrying in 5 seconds.." && sleep 5  # wait 5 seconds
     done
-    echo "$notice Please rerun this script again after Termux app update!"
-    echo "$running Installing app update and restarting Termux app.." && sleep 2
+    echo -e "$notice Please rerun this script again after Termux app update!"
+    echo -e "$running Installing app update and restarting Termux app.." && sleep 3
     # Temporary Disable SELinux Enforcing during installation if it not in Permissive
     if [ "$(su -c 'getenforce 2>/dev/null')" = "Enforcing" ]; then
       touch $Enforcing
@@ -308,11 +308,11 @@ question_mark="[?]"
 
 # --- Check if SnapChat is installed ---
 if [ -n "$package" ]; then
-  echo "$good SnapChat is installed on the device."
+  echo -e "$good SnapChat is installed on this device."
 else
 
-  echo "$bad SnapChat is not installed on the device!"
-  echo "$notice Please manually install it from the Play Store."
+  echo -e "$bad SnapChat is not installed on this device!"
+  echo -e "$notice Please manually install it from the Play Store."
   # open the Play Store page for SnapChat
   termux-open-url "https://play.google.com/store/apps/details?id=com.snapchat.android"
 
@@ -321,16 +321,16 @@ else
   # Check the user's input
   case "$userInput" in
       [Yy]*)
-          echo "$running Proceeding.."
+          echo -e "$running Proceeding.."
           ;;
       [Nn]*)
-          echo "$bad Please manually install SnapChat app from PlayStore on your $model device then rerun the script again."
+          echo -e "$bad Please manually install SnapChat app from PlayStore on your $model device then rerun the script again."
           # Open SnapChat app page on Play Store
           termux-open-url "https://play.google.com/store/apps/details?id=com.snapchat.android"
           exit 1
           ;;
       *)
-          echo "$info ${Blue}Invalid input. Please enter Yes or No.${Reset}"
+          echo -e "$info ${Blue}Invalid input. Please enter Yes or No.${Reset}"
           ;;
   esac
 
@@ -340,42 +340,42 @@ fi
 # --- Installing proot-distro in Termux ---
 pkill dpkg && yes | dpkg --configure -a  # Forcefully kill dpkg process and configure dpkg
 if [ ! -f "$PREFIX/bin/proot-distro" ]; then
-  echo "$running Installing proot-distro.."
+  echo -e "$running Installing proot-distro.."
   pkg install proot-distro -y > /dev/null 2>&1  # discarding output
 else
-  echo "$good proot-distro pkg already installed inside Termux."
+  echo -e "$good proot-distro pkg already installed inside Termux."
 fi
 
 # --- installing the Ubuntu distribution using proot-distro ---
 # Check if Ubuntu is already installed via proot-distro
 if ! ls "$PREFIX/var/lib/proot-distro/installed-rootfs/" 2>/dev/null | grep -iq "ubuntu" && [ -f "$PREFIX/bin/proot-distro" ]; then
-  echo "$running Installing Ubuntu using proot-distro.."
+  echo -e "$running Installing Ubuntu using proot-distro.."
   proot-distro install ubuntu > /dev/null 2>&1  # discarding output
 else
-  echo "$good Ubuntu already installed via proot-distro."
+  echo -e "$good Ubuntu already installed via proot-distro."
 fi
 
 # --- Update Ubuntu ---
 if ls "$PREFIX/var/lib/proot-distro/installed-rootfs/" 2>/dev/null | grep -iq "ubuntu"; then
-  echo "$running Updating Ubuntu distribution.."
+  echo -e "$running Updating Ubuntu distribution.."
   proot-distro login ubuntu -- bash -c "export DEBIAN_FRONTEND=noninteractive && { apt update && apt upgrade -y; } > /dev/null 2>&1"
 fi
 
 # --- Install Hashcat ---
 if ! proot-distro login ubuntu -- test -f /usr/bin/hashcat && ls "$PREFIX/var/lib/proot-distro/installed-rootfs/" 2>/dev/null | grep -iq "ubuntu"; then
-  echo "$running Installing HashCat inside PRoot Ubuntu.."
+  echo -e "$running Installing HashCat inside PRoot Ubuntu.."
   proot-distro login ubuntu -- bash -c "apt install hashcat -y > /dev/null 2>&1"
 else
-  echo "$good HashCat already installed inside Ubuntu."
+  echo -e "$good HashCat already installed inside Ubuntu."
 fi
 # --- Check if Hashcat is installed inside the PRoot Ubuntu environment ---
 if proot-distro login ubuntu -- which hashcat > /dev/null 2>&1; then
   hashcatVersion=$(proot-distro login ubuntu -- bash -c "hashcat --version" 2>/dev/null)
-  echo "$running hashcat --version → HashCat $hashcatVersion"
+  echo -e "$running hashcat --version → HashCat $hashcatVersion"
 else
-  echo "$notice HashCat binary not found inside PRoot Ubuntu!"
-  echo "$running Installing HashCat by rerunning 'IntelliJ MyEyes' script again.."
-  dash "$fullScriptPath"
+  echo -e "$notice HashCat binary not found inside PRoot Ubuntu!"
+  echo -e "$running Installing HashCat by rerunning 'IntelliJ MyEyes' script again.."
+  bash "$fullScriptPath"
   exit 1  # exit from loop
 fi
 
@@ -384,41 +384,41 @@ userInput=$(Write_ColoredPrompt $question_mark "yellow" "Are you sure you have a
 # Check the user's input
 case "$userInput" in
     [Yy]*)
-        echo "$running Proceeding.."
+        echo -e "$running Proceeding.."
         ;;
     [Nn]*)
-        echo "$bad Please login your SnapChat account in the SnapChat app first, then rerun the script again."
+        echo -e "$bad Please login your SnapChat account in the SnapChat app first, then rerun the script again."
         # Launch the SnapChat app
         su -c "monkey -p com.snapchat.android -c android.intent.category.LAUNCHER 1 > /dev/null 2>&1"
         exit 1
         ;;
     *)
-        echo "$info ${Blue}Invalid input. Please enter Yes or No.${Reset}"
+        echo -e "$info ${Blue}Invalid input. Please enter Yes or No.${Reset}"
         ;;
 esac
 
 # --- Download SQLite Binary ---
 if ! su -c "ls -l '/data/data/com.snapchat.android/sqlite'" >/dev/null 2>&1; then
-  echo "$running Downloading SQLite Binary for Android from 'https://github.com/arghya339/sqlite3-android/releases/download/all/sqlite-$arch'.."
+  echo -e "$running Downloading SQLite Binary for Android from 'https://github.com/arghya339/sqlite3-android/releases/download/all/sqlite-$arch'.."
   while true; do
       su -c "$PREFIX/bin/curl -L --progress-bar -C - -o '/data/data/com.snapchat.android/sqlite' 'https://github.com/arghya339/sqlite3-android/releases/download/all/sqlite-$arch'"
       DOWNLOAD_STATUS=$?
       if [ $DOWNLOAD_STATUS -eq "0" ]; then
         break  # break the resuming download loop
       fi
-      echo "$notice Retrying in 5 seconds.." && sleep 5  # wait 5 seconds
+      echo -e "$notice Retrying in 5 seconds.." && sleep 5  # wait 5 seconds
   done
 fi
 
 # --- Check SQLite exist on SnapChat /data/ dir ---
 if su -c "ls -l '/data/data/com.snapchat.android/sqlite'" >/dev/null 2>&1; then
-  echo "$good SQLite Binary exist on SnapChat /data/ dir."
+  echo -e "$good SQLite Binary exist on SnapChat /data/ dir."
   # --- Give execute (--x) permission to SQLite Binary
-  echo "$running Give execute (--x) permission to SQLite Binary.."
+  echo -e "$running Give execute (--x) permission to SQLite Binary.."
   su -c "chmod +x /data/data/com.snapchat.android/sqlite"
   # --- Checking SQLite --version ---
   SQLiteVersion=$(su -c "/data/data/com.snapchat.android/sqlite --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -n 1")
-  echo "$running SQLite --version → v$SQLiteVersion"
+  echo -e "$running sqlite --version → SQLite v$SQLiteVersion"
 fi
 
 # --- Automatically try Cracked MEO PassCode ---
@@ -451,7 +451,7 @@ tryMEO() {
   sleep 0.5  # Wait 500 milliseconds
   # Check if PinCode is valid
   if [ -n "$pincode" ]; then
-    echo "$running Trying Cracked My Eyes Only PinCode: $pincode"
+    echo -e "$running Trying Cracked My Eyes Only PinCode: $pincode"
     # Loop through each digit in the PinCode
     for (( i=0; i<${#pincode}; i++ )); do
         digit=${pincode:$i:1}
@@ -461,11 +461,11 @@ tryMEO() {
             eval "$command"
             sleep 0.5
         else
-            echo "$notice Invalid digit: $digit"
+            echo -e "$notice Invalid digit: $digit"
         fi
     done
   else
-    echo "$bad Failed to extract PinCode."
+    echo -e "$bad Failed to extract PinCode."
   fi
 }
 
@@ -474,11 +474,11 @@ if su -c "ls -l /data/data/com.snapchat.android/databases/memories.db" >/dev/nul
   hashed_passcode=$(su -c "/data/data/com.snapchat.android/sqlite /data/data/com.snapchat.android/databases/memories.db 'select hashed_passcode from memories_meo_confidential;'")
   #  --- check if $hashed_passcode is null ---
   if [ -z $hashed_passcode ]; then
-    echo "$bad Failed to fetched hashed PassCode using SQLite."
+    echo -e "$bad Failed to fetched hashed PassCode using SQLite."
     termux-open-url "https://github.com/arghya339/IntelliJ-MyEyes/blob/main/docs%2Fhashed_passcode_null_error.md"  # open hashed_passcode_null_error docs if fetched hashed passcode is null
     exit 1  # Terminate script execution
   else
-    echo "\033[1;30;47m[####] Fetched hashed PassCode: [$hashed_passcode]\033[0m"
+    echo -e "\033[1;30;47m[####] Fetched hashed PassCode: [$hashed_passcode]\033[0m"
     # --- Save the hashed passcode into a .txt file ---
     echo "$hashed_passcode" > "$hashed_passcode_file"
   fi
@@ -493,7 +493,7 @@ if su -c "ls -l /data/data/com.snapchat.android/databases/memories.db" >/dev/nul
   # which hashcat || whereis hashcat  # get hashcat executable path, its located in root@localhost:/usr/bin# dir
 
   # --- Brute-force the hash ---
-  echo "$running Brute forcing hash using HashCat.."
+  echo -e "$running Brute forcing hash using HashCat.."
   # echo "$HOME/meo/hashed_passcode.txt file content:" && proot-distro login ubuntu -- /bin/bash -c "cat $hashed_passcode_file"
   proot-distro login ubuntu -- /bin/bash -c "hashcat -m 3200 -a 3 '$hashed_passcode_file' '?d?d?d?d' --potfile-disable --force -o '$potfile' > /dev/null 2>&1"
   # using --potfile-disable flag to Temporarily ignore the potfile for the current session becouse i dont know hashcat default potfile path
@@ -501,11 +501,11 @@ if su -c "ls -l /data/data/com.snapchat.android/databases/memories.db" >/dev/nul
   # proot-distro login ubuntu -- /bin/bash -c "hashcat --show -m 3200 '$hashed_passcode_file'"
 
   # --- Extract pincode from potfile ---
-  pincode=$(proot-distro login ubuntu -- /bin/bash -c "grep -o '[^:]*$' '$potfile' | tail -n1") > /dev/null 2>&1
+  pincode=$(proot-distro login ubuntu -- /bin/bash -c "grep -o '[^:]*$' '$potfile' | tail -n1" 2>/dev/null)
 
   # --- Validate and display result ---
   if [ ${#pincode} -eq 4 ]; then
-    echo "\033[1;92;47m[****] Cracked My Eyes Only PinCode: [$pincode]\033[0m"
+    echo -e "\033[1;92;47m[****] Cracked My Eyes Only PinCode: [$pincode]\033[0m"
     
     if [ "$(su -c 'getenforce 2>/dev/null')" = "Enforcing" ]; then
       su -c "setenforce 0"  # set SELinux to Permissive mode to unblock unauthorized operations
@@ -515,29 +515,29 @@ if su -c "ls -l /data/data/com.snapchat.android/databases/memories.db" >/dev/nul
       tryMEO
     fi
     
-    echo "${Green}☆ Star & -{ Fork me..${Reset}"
+    echo -e "${Green}☆ Star & -{ Fork me..${Reset}"
     # Open GitHub URL
     termux-open-url "https://github.com/arghya339/IntelliJ-MyEyes"
     sleep 0.5  # 0.5 seconds = 500 milliseconds
-    echo "${Green}Donation: PayPal/@arghyadeep339${Reset}"
+    echo -e "${Green}Donation: PayPal/@arghyadeep339${Reset}"
     # Open PayPal URL
     termux-open-url "https://www.paypal.com/paypalme/arghyadeep339"
     sleep 0.5  # 0.5 seconds = 500 milliseconds
-    echo "${Green}Subscribe: YouTube/@MrPalash360${Reset}"
+    echo -e "${Green}Subscribe: YouTube/@MrPalash360${Reset}"
     # Open YouTube URL for subscription
     termux-open-url "https://www.youtube.com/channel/UC_OnjACMLvOR9SXjDdp2Pgg/videos?sub_confirmation=1"
     #sleep 0.5  # 0.5 seconds = 500 milliseconds
-    #echo "${Green}Follow: Telegram${Reset}"
+    #echo -e "${Green}Follow: Telegram${Reset}"
     # Open Telegram update channel URL
     #termux-open-url "https://t.me/MrPalash360"
     #sleep 0.5  # 0.5 seconds = 500 milliseconds
-    #echo "${Green}Join: Telegram${Reset}"
+    #echo -e "${Green}Join: Telegram${Reset}"
     # Open Telegram discussion channel URL
     #termux-open-url "https://t.me/MrPalash360Discussion"
 
   else 
     
-    echo "$bad Failed to crack PinCode using HashCat."
+    echo -e "$bad Failed to crack PinCode using HashCat."
     
     # --- Prompt the user for input ---
     userInput=$(Write_ColoredPrompt $question_mark "yellow" "Are you finding any bugs in this script? (Yes/No) ")
@@ -545,7 +545,7 @@ if su -c "ls -l /data/data/com.snapchat.android/databases/memories.db" >/dev/nul
     case "$userInput" in
         [Yy]*)
             # If user says Yes, ask for issue description
-            echo "$running Wait, creating a new bug reporting template using your keywords.."
+            echo -e "$running Wait, creating a new bug reporting template using your keywords.."
   
             # Ask user to describe the bug
             issue_description=$(Write_ColoredPrompt $question_mark "yellow" "Please describe what's not working in this script? (Write here..) ")
@@ -556,11 +556,11 @@ if su -c "ls -l /data/data/com.snapchat.android/databases/memories.db" >/dev/nul
             echo "🖤 Thanks for reporting!"
             ;;
         [Nn]*)
-            echo "$running Proceeding.."
+            echo -e "$running Proceeding.."
             ;;
         *)
             # If user provides an invalid input
-            echo "$info ${Blue}Invalid input. Please enter Yes or No.${Reset}"
+            echo -e "$info ${Blue}Invalid input. Please enter Yes or No.${Reset}"
             ;;
     esac
     proot-distro login ubuntu -- /bin/bash -c "rm -rf '$potfile' '$hashed_passcode_file'"
@@ -573,8 +573,8 @@ if su -c "ls -l /data/data/com.snapchat.android/databases/memories.db" >/dev/nul
 
 elif [ ! su -c ls -l /data/data/com.snapchat.android/databases/memories.db ]; then
   # File not found
-  echo "$bad memories.db file not found in /data/data/com.snapchat.android/databases dir on $model device!"
-  echo "$question Are you sure 'My Eyes Only' SnapChat features are turned on in the $model device?"
+  echo -e "$bad memories.db file not found in /data/data/com.snapchat.android/databases dir on $model device!"
+  echo -e "$question Are you sure 'My Eyes Only' SnapChat features are turned on in the $model device?"
 fi
 
 # --- Prompt the user for input ---
@@ -584,21 +584,20 @@ case "$userInput" in
     [Yy]*)
         # If user says Yes, rerun the script
         clear
-        echo "$running Rerunning 'IntelliJ MyEyes' script again.."
-        dash "$fullScriptPath"
+        echo -e "$running Rerunning 'IntelliJ MyEyes' script again.."
+        bash "$fullScriptPath"
         exit 1  # exit from loop
         ;;
     [Nn]*)
         # If user says No, proceed with purging script related files
-        echo "$info Proceeding with purge IntelliJ MyEyes script related files and directory.."
+        echo -e "$info Proceeding with purge IntelliJ MyEyes script related files and directory.."
         rm -rf "$meo"
-        rm -rf "$fullScriptPath"
         su -c "rm -rf /data/data/com.snapchat.android/sqlite"
         echo "♥️ Thanks for using this script. Regards, @Arghya"
         ;;
     *)
         # If user provides an invalid input
-        echo "$info ${Blue}Invalid input. Please enter Yes or No.${Reset}"
+        echo -e "$info ${Blue}Invalid input. Please enter Yes or No.${Reset}"
         ;;
 esac
 
@@ -608,7 +607,7 @@ userInput=$(Write_ColoredPrompt $question_mark "yellow" "Do you want to remove t
 case "$userInput" in
     [Yy]*)
         # If the user confirms, proceed with removing dependencies
-        echo "$running Proceeding with removal of dependencies.."
+        echo -e "$running Proceeding with removal of dependencies.."
         # uninstall Hashcat from Ubuntu
         proot-distro login ubuntu -- bash -c "apt remove hashcat -y" > /dev/null 2>&1
         # uninstall ubuntu using proot-distro
@@ -619,24 +618,26 @@ case "$userInput" in
         apt autoremove -y > /dev/null 2>&1
         ;;
     [Nn]*)
-        echo "$info Proceeding without removing script-related dependencies!"
+        echo -e "$info Proceeding without removing script-related dependencies!"
         ;;
     *)
         # If user provides an invalid input
-        echo "$info ${Blue}Invalid input. Please enter Yes or No.${Reset}"
+        echo -e "$info ${Blue}Invalid input. Please enter Yes or No.${Reset}"
         ;;
 esac
 
 # --- Developer Info ---
-echo "${Green}Powered by Hashcat (github.com/hashcat/hashcat)"
+echo -e "${Green}Powered by Hashcat (github.com/hashcat/hashcat)"
 termux-open-url "https://github.com/hashcat/hashcat/"
-echo "${Green}Inspired by meobrute (github.com/sdushantha/meobrute)"
-echo "${Green}Developer: @arghya339 (github.com/arghya339)"
+echo -e "${Green}Inspired by meobrute (github.com/sdushantha/meobrute)"
+echo -e "${Green}Developer: @arghya339 (github.com/arghya339)"
 
 # --- External Dependencies ---
-echo "$info External Dependencies: 'PRoot Distro' [GNU 3.0], 'Ubuntu' [CC-BY-SA 3.0], 'Hashcat' [MIT] 'SQLite' [BSD-style]"
-echo "$info LICENSE: This script is licensed under the 'MIT' License."
+echo -e "$info External Dependencies: 'PRoot Distro' [GNU 3.0], 'Ubuntu' [CC-BY-SA 3.0], 'Hashcat' [MIT] 'SQLite' [BSD-style]"
+echo -e "$info LICENSE: This script is licensed under the 'MIT' License."
 
 # --- Close Terminal Prompt ---
-echo "$info Do you want to close Termux? (Enter 'exit' to close)"
+echo -e "$info Do you want to close Termux? (Enter 'exit' to close)"
+
+rm -rf "$fullScriptPath"  # Remove meo script
 #################################################################
