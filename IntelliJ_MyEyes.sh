@@ -57,10 +57,10 @@ comment
 
 # Set the color for the eye (green in this case)
 Green="\033[92;1m"
-Red="\033[91"
-Blue="\033[94"
-White="\033[37"
-Yellow="\033[93"
+Red="\033[91m"
+Blue="\033[94m"
+White="\033[37m"
+Yellow="\033[93m"
 Reset="\033[0m"
 
 # Construct the eye shape using string concatenation
