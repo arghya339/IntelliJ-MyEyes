@@ -399,7 +399,7 @@ esac
 
 # --- Download SQLite Binary ---
 if ! su -c "ls -l '/data/data/com.snapchat.android/sqlite'" >/dev/null 2>&1; then
-  echo -e "$running Downloading SQLite Binary for Android from 'https://github.com/arghya339/sqlite3-android/releases/download/all/sqlite-$arch'.."
+  echo -e "$running Downloading SQLite Binary for Android from ${Blue}https://github.com/arghya339/sqlite3-android/releases/download/all/sqlite-$arch${Reset}.."
   while true; do
       su -c "$PREFIX/bin/curl -L --progress-bar -C - -o '/data/data/com.snapchat.android/sqlite' 'https://github.com/arghya339/sqlite3-android/releases/download/all/sqlite-$arch'"
       DOWNLOAD_STATUS=$?
@@ -637,7 +637,7 @@ echo -e "$info External Dependencies: 'PRoot Distro' [GNU 3.0], 'Ubuntu' [CC-BY-
 echo -e "$info LICENSE: This script is licensed under the 'MIT' License."
 
 # --- Close Terminal Prompt ---
-echo -e "$info Do you want to close Termux? (Enter 'exit' to close)"
+echo -e "$info Do you want to close Termux? (Enter ${Green}exit${Reset} to close)"
 
 rm -rf "$fullScriptPath"  # Remove meo script
 #################################################################
