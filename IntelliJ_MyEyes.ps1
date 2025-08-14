@@ -636,15 +636,15 @@ if ($databasesOutput -ne "/data/data/com.snapchat.android/databases") {
       }
       
       # --- Download APKEditor.jar if it doesn't exist ---
-      if (!(Test-Path (Join-Path $meo "APKEditor-1.4.4.jar"))) {
+      if (!(Test-Path (Join-Path $meo "APKEditor-1.4.5.jar"))) {
         Write-Host "[~]" -ForegroundColor White "Downloading APKEditor-*.jar..."
-        Invoke-WebRequest -Uri https://github.com/REAndroid/APKEditor/releases/download/V1.4.4/APKEditor-1.4.4.jar -OutFile $meo\APKEditor-1.4.4.jar
+        Invoke-WebRequest -Uri https://github.com/REAndroid/APKEditor/releases/download/V1.4.5/APKEditor-1.4.5.jar -OutFile $meo\APKEditor-1.4.5.jar
       }
 
       # --- Merge split .APKs into a standalone .APK using APKEditor-*.jar and java 17 ---
       if (Test-Path $apksFilePath) {
         Write-Host "[~]" -ForegroundColor White "Merge Split .apks to Standalone .apk..."
-        java -jar $meo\APKEditor-1.4.4.jar m -i $apksFilePath -o $apkFilePath *> $null  # to discard output.
+        java -jar $meo\APKEditor-1.4.5.jar m -i $apksFilePath -o $apkFilePath *> $null  # to discard output.
       } elseif (!(Test-Path $apksFilePath)) {
         Write-Host "[i]" -ForegroundColor Blue "snapchat.apks not found."
       } elseif (Test-Path $apkFilePath) {
