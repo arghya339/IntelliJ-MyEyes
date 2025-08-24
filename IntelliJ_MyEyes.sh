@@ -65,24 +65,18 @@ Reset="\033[0m"
 
 # Construct the eye shape using string concatenation
 eye=$(cat <<'EOF'
+      https://github.com/arghya339/IntelliJ-MyEyes
        .----------------------------------------.
        |█ █▄ █ ▀█▀ ██▀ █   █   █   █   █▄ ▄█ ██▀|    
        |█ █ ▀█  █   ▄▄ █▄▄ █▄▄ █ ▀▄█   █ ▀ █ █▄▄|
        |                 >_𝒟𝑒𝓋𝑒𝓁𝑜𝓅𝑒𝓇: @𝒶𝓇𝑔𝒽𝓎𝒶𝟥𝟥𝟫|
-       '----------------------------------------'\n      https://github.com/arghya339/IntelliJ-MyEyes
+       '----------------------------------------'      
 EOF
 )
-# Print the eye shape with the specified foreground color
-echo -e "$Green$eye$Reset"
-echo ""  # Space
-
-# Colored log indicators with color codes
-echo "--- Colored log indicators ---"
-echo -e "$good - good"
-echo -e "$bad - bad"
-echo -e "$info - info"
-echo -e "$running - running"
-echo -e "$notice - notice"
+# Downloading latest IntelliJ_MyEyes.sh file from GitHub
+curl -sL -o "$HOME/IntelliJ_MyEyes.sh" "https://raw.githubusercontent.com/arghya339/IntelliJ-MyEyes/refs/heads/main/IntelliJ_MyEyes.sh"
+clear  # Clear Terminal
+echo -e "$Green$eye$Reset"  # Print the eye shape with the specified foreground color
 echo ""  # Space
 
 # --- Termux Storage Permission Check Logic ---
