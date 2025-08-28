@@ -79,24 +79,31 @@ clear  # Clear Terminal
 echo -e "$Green$eye$Reset"  # Print the eye shape with the specified foreground color
 echo ""  # Space
 
-# --- Termux Storage Permission Check Logic ---
-if [ -d "$HOME/storage/shared" ]; then
-    echo -e "${good} Storage permission already granted via Termux API."
-else
-    # Attempt to list /storage/emulated/0 to trigger the error
-    error=$(ls /storage/emulated/0 2>&1)
-    expected_error="ls: cannot open directory '/storage/emulated/0': Permission denied"
+Android=$(getprop ro.build.version.release)
 
-    if echo "$error" | grep -qF "$expected_error"; then
-        echo -e "${notice} Storage permission not granted. Running termux-setup-storage.."
-        termux-setup-storage
-        exit 1  # Exit the script after handling the error
-    elif echo "$error" | grep -q "^Android"; then
-        echo -e "$good Storage permission already granted via system Settings."
-    else
-        echo -e "${bad} Unknown error: $error"
-        exit 1  # Exit on any other error
-    fi
+# --- Storage Permission Check Logic ---
+if ! ls /sdcard/ 2>/dev/null | grep -E -q "^(Android|Download)"; then
+  echo -e "${notice} ${Yellow}Storage permission not granted!${Reset}\n$running ${Green}termux-setup-storage${Reset}.."
+  if [ "$Android" -gt 5 ]; then  # for Android 5 storage permissions grant during app installation time, so Termux API termux-setup-storage command not required
+    count=0
+    while true; do
+      if [ "$count" -ge 2 ]; then
+        echo -e "$bad Failed to get storage permissions after $count attempts!"
+        echo -e "$notice Please grant permissions manually in Termux App info > Permissions > Files > File permission → Allow."
+        am start -a android.settings.APPLICATION_DETAILS_SETTINGS -d package:com.termux &> /dev/null
+        exit 0
+      fi
+      termux-setup-storage  # ask Termux Storage permissions
+      sleep 3  # wait 3 seconds
+      if ls /sdcard/ 2>/dev/null | grep -q "^Android" || ls "$HOME/storage/shared/" 2>/dev/null | grep -q "^Android"; then
+        break
+        if [ "$Android" -lt 8 ]; then
+          exit 0  # Exit the script
+        fi
+      fi
+      ((count++))
+    done
+  fi
 fi
 
 # --- Termux SuperUser Permission Check ---
@@ -136,7 +143,6 @@ fi
 meo="$HOME/meo"  # meo dir inside Termux $HOME dir
 Enforcing="$meo/Enforcing"  # Enforcing file
 outdatedPKG=$(apt list --upgradable 2>/dev/null)  # list of outdated pkg
-Android=$(getprop ro.build.version.release)
 arch=$(getprop ro.product.cpu.abi)  # get device arch
 model=$(getprop ro.product.model)  # get device model
 hashed_passcode_file="$meo/hashed_passcode.txt"  # hashed_passcode.txt file
