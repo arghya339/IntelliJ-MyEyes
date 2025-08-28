@@ -637,8 +637,8 @@ if ($databasesOutput -ne "/data/data/com.snapchat.android/databases") {
       
       # --- Download APKEditor.jar if it doesn't exist ---
       $owner = "REAndroid"; $repo = "APKEditor"
-      $latestReleases = Invoke-RestMethod -Uri "https://api.github.com/repos/$owner/$repo/releases/latest" | Select-Object -ExpandProperty tag_name | ForEach-Object { $_ -replace "^V", "" }  # 1.4.5
-      Write-Host "[i]" -ForegroundColor Blue "latestAPKEditorReleases: V$latestReleases"
+      $latestRelease = Invoke-RestMethod -Uri "https://api.github.com/repos/$owner/$repo/releases/latest" | Select-Object -ExpandProperty tag_name | ForEach-Object { $_ -replace "^V", "" }  # 1.4.5
+      Write-Host "[i]" -ForegroundColor Blue "latestAPKEditorReleases: V$latestRelease"
       
       $fullPath = Get-ChildItem -Path $meo -Filter "APKEditor-*.jar" -File | Select-Object -First 1 -ExpandProperty FullName
       $baseName = if ($fullPath) { [System.IO.Path]::GetFileName($fullPath) } else { $null }
