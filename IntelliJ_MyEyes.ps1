@@ -90,6 +90,8 @@ if (!(Test-Connection 8.8.8.8 -Count 1 -Quiet)) {
   Write-Host "[x]" -ForegroundColor Red "Oops! No Internet Connection available.`nConnect to the Internet and try again later."
   return 1
 }
+# Downloading latest IntelliJ_MyEyes.ps1 file from GitHub
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/arghya339/IntelliJ-MyEyes/refs/heads/main/IntelliJ_MyEyes.ps1 -OutFile "$env:USERPROFILE\Downloads\IntelliJ_MyEyes.ps1"
 
 # --- local Variables ---
 $fullScriptPath = $MyInvocation.MyCommand.Path  # running script path

@@ -73,8 +73,6 @@ eye=$(cat <<'EOF'
        '----------------------------------------'      
 EOF
 )
-# Downloading latest IntelliJ_MyEyes.sh file from GitHub
-curl -sL -o "$HOME/IntelliJ_MyEyes.sh" "https://raw.githubusercontent.com/arghya339/IntelliJ-MyEyes/refs/heads/main/IntelliJ_MyEyes.sh"
 clear  # Clear Terminal
 echo -e "$Green$eye$Reset"  # Print the eye shape with the specified foreground color
 echo ""  # Space
@@ -123,6 +121,8 @@ if ! ping -c 1 -W 2 8.8.8.8 >/dev/null 2>&1 ; then
 else
   echo -e "$good Internet connection available."
 fi
+# Downloading latest IntelliJ_MyEyes.sh file from GitHub
+curl -sL -o "$HOME/IntelliJ_MyEyes.sh" "https://raw.githubusercontent.com/arghya339/IntelliJ-MyEyes/refs/heads/main/IntelliJ_MyEyes.sh"
 
 # --- Update Termux pkg ---
 echo -e "$running Updating Termux pkg.."
