@@ -131,7 +131,6 @@ pkill pkg && { pkg update && pkg upgrade -y; } > /dev/null 2>&1  # discarding ou
 echo "deb https://mirrors.ustc.edu.cn/termux/termux-main stable main" > $PREFIX/etc/apt/sources.list && pkg update >/dev/null 2>&1 && pkg --check-mirror update >/dev/null 2>&1  # termux-change-repo && pkg --check-mirror update
 
 # --- Global Veriable ---
-termuxVersion=$(echo $TERMUX_VERSION 2>/dev/null)  # Get Termux application version (ie. 0.118.0 or 0.119.0-beta.2)
 fullScriptPath=$(realpath "$0")  # Get the full path of the currently running script
 if [ "$(su -c 'getenforce 2>/dev/null')" = "Enforcing" ]; then
   su -c "setenforce 0"  # set SELinux to Permissive mode to unblock unauthorized operations
@@ -141,7 +140,7 @@ else
   package=$(su -c "pm list packages | grep 'com.snapchat.android'" 2>/dev/null)  # SnapChat packages list
 fi
 meo="$HOME/meo"  # meo dir inside Termux $HOME dir
-Enforcing="$meo/Enforcing"  # Enforcing file
+installedPKG=$(pkg list-installed 2>/dev/null)  # list of installed pkg
 outdatedPKG=$(apt list --upgradable 2>/dev/null)  # list of outdated pkg
 arch=$(getprop ro.product.cpu.abi)  # get device arch
 model=$(getprop ro.product.model)  # get device model
@@ -151,134 +150,98 @@ potfile="/root/hashcat.potfile"  # Hashcat potfile variable
 # --- Create $meo dir if it does't exist ---
 mkdir -p "$meo"
 
-# --- curl pkg update function ---
-update_curl() {
-  if echo $outdatedPKG | grep -q "^curl/" 2>/dev/null; then
-    echo -e "$running Upgrading curl pkg.."
-    pkg upgrade curl -y > /dev/null 2>&1
+# --- pkg upgrade function ---
+pkgUpdate() {
+  local pkg=$1
+  if echo $outdatedPKG | grep -q "^$pkg/" 2>/dev/null; then
+    echo -e "$running Upgrading $pkg pkg.."
+    pkg upgrade "$pkg" -y > /dev/null 2>&1
   fi
 }
-# --- Check if curl is installed ----
-if [ -f "$PREFIX/bin/curl" ]; then
-  update_curl
-else
-  echo -e "$running Installing curl pkg.."
-  pkg install curl -y > /dev/null 2>&1
-fi
 
-# --- jq pkg update function ---
-update_jq() {
-  if echo $outdatedPKG | grep -q "^jq/" 2>/dev/null; then
-    echo -e "$running Upgrading jq pkg.."
-    pkg upgrade jq -y > /dev/null 2>&1
+# --- pkg install/update function ---
+pkgInstall() {
+  local pkg=$1
+  if echo "$installedPKG" | grep -q "^$pkg/" 2>/dev/null; then
+    pkgUpdate "$pkg"
+  else
+    echo -e "$running Installing $pkg pkg.."
+    pkg install "$pkg" -y > /dev/null 2>&1
   fi
 }
-# --- Check if jq is installed ----
-if [ -f "$PREFIX/bin/jq" ]; then
-  update_jq
-else
-  echo -e "$running Installing jq pkg.."
-  pkg install jq -y > /dev/null 2>&1
-fi
+
+pkgInstall "apt"  # apt update
+pkgInstall "dpkg"  # dpkg update
+pkgInstall "bash"  # bash update
+pkgInstall "curl"  # curl update
+pkgInstall "jq"  # jq install/update
 
 # --- Check if Termux Version is Latest ---
-if [ $Android -ge "8" ]; then
-  owner="termux" && repo="termux-app"
-  latestReleases=$(curl -s https://api.github.com/repos/$owner/$repo/releases/latest | jq -r '.tag_name | sub("^v"; "")')  # 0.118.0
-  if [ "$termuxVersion" != "$latestReleases" ]; then
+if [ $Android -ge 8 ]; then
+  latestReleases=$(curl -s https://api.github.com/repos/termux/termux-app/releases/latest | jq -r '.tag_name | sub("^v"; "")')  # 0.118.0
+  if [ "$TERMUX_VERSION" != "$latestReleases" ]; then
     echo -e "$bad Termux app is outdated!"
     echo -e "$running Downloading Termux app update.."
     while true; do
-        su -c "$PREFIX/bin/curl -L --progress-bar -C - -o '/data/local/tmp/termux-app_v${latestReleases}+github-debug_$arch.apk' 'https://github.com/$owner/$repo/releases/download/v$latestReleases/termux-app_v${latestReleases}+github-debug_$arch.apk'"
-        DOWNLOAD_STATUS=$?
-        if [ $DOWNLOAD_STATUS -eq "0" ]; then
-          break  # break the resuming download loop
-        fi
-        echo -e "$notice Retrying in 5 seconds.." && sleep 5  # wait 5 seconds
+      su -c "$PREFIX/bin/curl -L --progress-bar -C - -o '/data/local/tmp/termux-app_v${latestReleases}+github-debug_$arch.apk' 'https://github.com/termux/termux-app/releases/download/v$latestReleases/termux-app_v${latestReleases}+github-debug_$arch.apk'"
+      if [ $? -eq 0 ]; then
+        break  # break the resuming download loop
+      fi
+      echo -e "$notice Retrying in 5 seconds.." && sleep 5  # wait 5 seconds
     done
     echo -e "$notice Please rerun this script again after Termux app update!"
     echo -e "$running Installing app update and restarting Termux app.." && sleep 3
     # Temporary Disable SELinux Enforcing during installation if it not in Permissive
     if [ "$(su -c 'getenforce 2>/dev/null')" = "Enforcing" ]; then
-      touch $Enforcing
       su -c "setenforce 0"  # set SELinux to Permissive mode to unblock unauthorized operations
+      touch "$meo/setenforce0"
       su -c "pm install -i com.android.vending '/data/local/tmp/termux-app_v${latestReleases}+github-debug_$arch.apk'"
     else
       su -c "pm install -i com.android.vending '/data/local/tmp/termux-app_v${latestReleases}+github-debug_$arch.apk'"
     fi
   else
     if su -c "ls -l '/data/local/tmp/termux-app_v${latestReleases}+github-debug_$arch.apk'" >/dev/null 2>&1; then
-      if [ "$(su -c 'getenforce 2>/dev/null')" = "Permissive" ] && [ -f "$Enforcing" ]; then
+      if [ "$(su -c 'getenforce 2>/dev/null')" = "Permissive" ] && [ -f "$meo/setenforce0" ]; then
         su -c "setenforce 1"  # set SELinux to Enforcing mode to block unauthorized operations
-        rm $Enforcing
+        rm -f "$meo/setenforce0"
       fi
       su -c "rm '/data/local/tmp/termux-app_v${latestReleases}+github-debug_$arch.apk'"
     fi
   fi
-elif [ $Android -eq "7" ]; then
-  owner="termux" && repo="termux-app"
-  lastReleases=$(curl -s https://api.github.com/repos/$owner/$repo/tags | jq -r '.[0].name | sub("^v"; "")')  # 0.119.0-beta.2
-  if [ "$termuxVersion" != "$lastReleases" ]; then
-    echo -e "$bad Termux app is outdated!"
-    echo -e "$running Downloading Termux app update.."
-    while true; do
-        su -c "$PREFIX/bin/curl -L --progress-bar -C - -o '/data/local/tmp/termux-app_v${lastReleases}+apt-android-7-github-debug_$arch.apk' 'https://github.com/$owner/$repo/releases/download/v$lastReleases/termux-app_v${lastReleases}+apt-android-7-github-debug_$arch.apk'"
-        DOWNLOAD_STATUS=$?
-        if [ $DOWNLOAD_STATUS -eq "0" ]; then
-          break  # break the resuming download loop
-        fi
-        echo -e "$notice Retrying in 5 seconds.." && sleep 5  # wait 5 seconds
-    done
-    echo -e "$notice Please rerun this script again after Termux app update!"
-    echo -e "$running Installing app update and restarting Termux app.." && sleep 3
-    # Temporary Disable SELinux Enforcing during installation if it not in Permissive
-    if [ "$(su -c 'getenforce 2>/dev/null')" = "Enforcing" ]; then
-      touch $Enforcing
-      su -c "setenforce 0"  # set SELinux to Permissive mode to unblock unauthorized operations
-      su -c "pm install -i com.android.vending '/data/local/tmp/termux-app_v${lastReleases}+apt-android-7-github-debug_$arch.apk'"
-    else
-      su -c "pm install -i com.android.vending '/data/local/tmp/termux-app_v${lastReleases}+apt-android-7-github-debug_$arch.apk'"
-    fi
+else
+  if [ $Android -eq 7 ]; then
+    variant=7
   else
-    if su -c "ls -l '/data/local/tmp/termux-app_v${lastReleases}+apt-android-7-github-debug_$arch.apk'" >/dev/null 2>&1; then
-      if [ "$(su -c 'getenforce 2>/dev/null')" = "Permissive" ] && [ -f "$Enforcing" ]; then
-        su -c "setenforce 1"  # set SELinux to Enforcing mode to block unauthorized operations
-        rm $Enforcing
-      fi
-      su -c "rm '/data/local/tmp/termux-app_v${lastReleases}+apt-android-7-github-debug_$arch.apk'"
-    fi
+    variant=5
   fi
-elif [ $Android -eq "6" ] || [ $Android -eq "5" ]; then
-  owner="termux" && repo="termux-app"
-  lastReleases=$(curl -s https://api.github.com/repos/$owner/$repo/tags | jq -r '.[0].name | sub("^v"; "")')  # 0.119.0-beta.2
-  if [ "$termuxVersion" != "$lastReleases" ]; then
+  lastReleases=$(curl -s https://api.github.com/repos/termux/termux-app/tags | jq -r '.[0].name | sub("^v"; "")')  # 0.119.0-beta.2
+  if [ "$TERMUX_VERSION" != "$lastReleases" ]; then
     echo -e "$bad Termux app is outdated!"
     echo -e "$running Downloading Termux app update.."
     while true; do
-        su -c "$PREFIX/bin/curl -L --progress-bar -o -C - '/data/local/tmp/termux-app_v${lastReleases}+apt-android-5-github-debug_$arch.apk' 'https://github.com/$owner/$repo/releases/download/v$lastReleases/termux-app_v${lastReleases}+apt-android-5-github-debug_$arch.apk'"
-        DOWNLOAD_STATUS=$?
-        if [ $DOWNLOAD_STATUS -eq "0" ]; then
-          break  # break the resuming download loop
-        fi
-        echo -e "$notice Retrying in 5 seconds.." && sleep 5  # wait 5 seconds
+      su -c "$PREFIX/bin/curl -L --progress-bar -C - -o '/data/local/tmp/termux-app_v${lastReleases}+apt-android-$variant-github-debug_$arch.apk' 'https://github.com/termux/termux-app/releases/download/v$lastReleases/termux-app_v${lastReleases}+apt-android-$variant-github-debug_$arch.apk'"
+      if [ $? -eq 0 ]; then
+        break  # break the resuming download loop
+      fi
+      echo -e "$notice Retrying in 5 seconds.." && sleep 5  # wait 5 seconds
     done
     echo -e "$notice Please rerun this script again after Termux app update!"
     echo -e "$running Installing app update and restarting Termux app.." && sleep 3
     # Temporary Disable SELinux Enforcing during installation if it not in Permissive
     if [ "$(su -c 'getenforce 2>/dev/null')" = "Enforcing" ]; then
-      touch $Enforcing
       su -c "setenforce 0"  # set SELinux to Permissive mode to unblock unauthorized operations
-      su -c "pm install -i com.android.vending '/data/local/tmp/termux-app_v${lastReleases}+apt-android-5-github-debug_$arch.apk'"
+      touch "$meo/setenforce0"
+      su -c "pm install -i com.android.vending '/data/local/tmp/termux-app_v${lastReleases}+apt-android-$variant-github-debug_$arch.apk'"
     else
-      su -c "pm install -i com.android.vending '/data/local/tmp/termux-app_v${lastReleases}+apt-android-5-github-debug_$arch.apk'"
+      su -c "pm install -i com.android.vending '/data/local/tmp/termux-app_v${lastReleases}+apt-android-$variant-github-debug_$arch.apk'"
     fi
   else
-    if su -c "ls -l '/data/local/tmp/termux-app_v${lastReleases}+apt-android-5-github-debug_$arch.apk'" >/dev/null 2>&1; then
-      if [ "$(su -c 'getenforce 2>/dev/null')" = "Permissive" ] && [ -f "$Enforcing" ]; then
+    if su -c "ls -l '/data/local/tmp/termux-app_v${lastReleases}+apt-android-$variant-github-debug_$arch.apk'" >/dev/null 2>&1; then
+      if [ "$(su -c 'getenforce 2>/dev/null')" = "Permissive" ] && [ -f "$meo/setenforce0" ]; then
         su -c "setenforce 1"  # set SELinux to Enforcing mode to block unauthorized operations
-        rm $Enforcing
+        rm -f "$meo/setenforce0"
       fi
-      su -c "rm '/data/local/tmp/termux-app_v${lastReleases}+apt-android-5-github-debug_$arch.apk'"
+      su -c "rm '/data/local/tmp/termux-app_v${lastReleases}+apt-android-$variant-github-debug_$arch.apk'"
     fi
   fi
 fi
@@ -315,23 +278,20 @@ else
   echo -e "$notice Please manually install it from the Play Store."
   # open the Play Store page for SnapChat
   termux-open-url "https://play.google.com/store/apps/details?id=com.snapchat.android"
-
+  su -c "input tap 540 590"  # tap on install button. x540, y590
+  
   # --- Prompt the user for input ---
   userInput=$(Write_ColoredPrompt $question_mark "yellow" "Are you sure you have already installed the SnapChat app from PlayStore on your $model device? (Yes/No) ")
   # Check the user's input
   case "$userInput" in
-      [Yy]*)
-          echo -e "$running Proceeding.."
-          ;;
+      [Yy]*) echo -e "$running Proceeding.." ;;
       [Nn]*)
           echo -e "$bad Please manually install SnapChat app from PlayStore on your $model device then rerun the script again."
           # Open SnapChat app page on Play Store
           termux-open-url "https://play.google.com/store/apps/details?id=com.snapchat.android"
           exit 1
           ;;
-      *)
-          echo -e "$info ${Blue}Invalid input. Please enter Yes or No.${Reset}"
-          ;;
+      *) echo -e "$info ${Blue}Invalid input. Please enter Yes or No.${Reset}" ;;
   esac
 
 fi
@@ -383,18 +343,14 @@ fi
 userInput=$(Write_ColoredPrompt $question_mark "yellow" "Are you sure you have already logged into your SnapChat account in the SnapChat app on your $model device? (Yes/No) ")
 # Check the user's input
 case "$userInput" in
-    [Yy]*)
-        echo -e "$running Proceeding.."
-        ;;
+    [Yy]*) echo -e "$running Proceeding.." ;;
     [Nn]*)
         echo -e "$bad Please login your SnapChat account in the SnapChat app first, then rerun the script again."
         # Launch the SnapChat app
         su -c "monkey -p com.snapchat.android -c android.intent.category.LAUNCHER 1 > /dev/null 2>&1"
         exit 1
         ;;
-    *)
-        echo -e "$info ${Blue}Invalid input. Please enter Yes or No.${Reset}"
-        ;;
+    *) echo -e "$info ${Blue}Invalid input. Please enter Yes or No.${Reset}" ;;
 esac
 
 # --- Download SQLite Binary ---
@@ -402,8 +358,7 @@ if ! su -c "ls -l '/data/data/com.snapchat.android/sqlite'" >/dev/null 2>&1; the
   echo -e "$running Downloading SQLite Binary for Android from ${Blue}https://github.com/arghya339/sqlite3-android/releases/download/all/sqlite-$arch${Reset}.."
   while true; do
       su -c "$PREFIX/bin/curl -L --progress-bar -C - -o '/data/data/com.snapchat.android/sqlite' 'https://github.com/arghya339/sqlite3-android/releases/download/all/sqlite-$arch'"
-      DOWNLOAD_STATUS=$?
-      if [ $DOWNLOAD_STATUS -eq "0" ]; then
+      if [ $? -eq 0 ]; then
         break  # break the resuming download loop
       fi
       echo -e "$notice Retrying in 5 seconds.." && sleep 5  # wait 5 seconds
@@ -540,7 +495,7 @@ if su -c "ls -l /data/data/com.snapchat.android/databases/memories.db" >/dev/nul
     echo -e "$bad Failed to crack PinCode using HashCat."
     
     # --- Prompt the user for input ---
-    userInput=$(Write_ColoredPrompt $question_mark "yellow" "Are you finding any bugs in this script? (Yes/No) ")
+    userInput=$(Write_ColoredPrompt $question_mark "yellow" "Did you find any bugs in this script? (Yes/No) ")
     # Check the user's input
     case "$userInput" in
         [Yy]*)
@@ -555,9 +510,7 @@ if su -c "ls -l /data/data/com.snapchat.android/databases/memories.db" >/dev/nul
         
             echo "🖤 Thanks for reporting!"
             ;;
-        [Nn]*)
-            echo -e "$running Proceeding.."
-            ;;
+        [Nn]*) echo -e "$running Proceeding.." ;;
         *)
             # If user provides an invalid input
             echo -e "$info ${Blue}Invalid input. Please enter Yes or No.${Reset}"
@@ -595,10 +548,7 @@ case "$userInput" in
         su -c "rm -rf /data/data/com.snapchat.android/sqlite"
         echo "♥️ Thanks for using this script. Regards, @Arghya"
         ;;
-    *)
-        # If user provides an invalid input
-        echo -e "$info ${Blue}Invalid input. Please enter Yes or No.${Reset}"
-        ;;
+    *) echo -e "$info ${Blue}Invalid input. Please enter Yes or No.${Reset}" ;;
 esac
 
 # --- Prompt the user for input ---
@@ -620,10 +570,7 @@ case "$userInput" in
     [Nn]*)
         echo -e "$info Proceeding without removing script-related dependencies!"
         ;;
-    *)
-        # If user provides an invalid input
-        echo -e "$info ${Blue}Invalid input. Please enter Yes or No.${Reset}"
-        ;;
+    *) echo -e "$info ${Blue}Invalid input. Please enter Yes or No.${Reset}" ;;
 esac
 
 # --- Developer Info ---
@@ -639,5 +586,5 @@ echo -e "$info LICENSE: This script is licensed under the 'MIT' License."
 # --- Close Terminal Prompt ---
 echo -e "$info Do you want to close Termux? (Enter ${Green}exit${Reset} to close)"
 
-rm -rf "$fullScriptPath"  # Remove meo script
+rm -f "$fullScriptPath"  # Remove meo script
 #################################################################
