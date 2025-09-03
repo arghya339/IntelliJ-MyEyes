@@ -450,7 +450,16 @@ if su -c "ls -l /data/data/com.snapchat.android/databases/memories.db" >/dev/nul
   # --- Brute-force the hash ---
   echo -e "$running Brute forcing hash using HashCat.."
   # echo "$HOME/meo/hashed_passcode.txt file content:" && proot-distro login ubuntu -- /bin/bash -c "cat $hashed_passcode_file"
+  if [ "$(su -c 'getenforce 2>/dev/null')" = "Enforcing" ]; then
+    su -c "setenforce 0"  # set SELinux to Permissive mode to unblock unauthorized operations
+    su -c "cmd deviceidle whitelist +com.termux"
+    su -c "setenforce 1"  # set SELinux to Enforcing mode to block unauthorized operations
+  else
+    su -c "cmd deviceidle whitelist +com.termux"
+  fi
+  termux-wake-lock
   proot-distro login ubuntu -- /bin/bash -c "hashcat -m 3200 -a 3 '$hashed_passcode_file' '?d?d?d?d' --potfile-disable --force -o '$potfile' > /dev/null 2>&1"
+  termux-wake-unlock
   # using --potfile-disable flag to Temporarily ignore the potfile for the current session becouse i dont know hashcat default potfile path
   # ---  Check Previously Cracked Hashes ---
   # proot-distro login ubuntu -- /bin/bash -c "hashcat --show -m 3200 '$hashed_passcode_file'"

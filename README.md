@@ -22,7 +22,7 @@ Automate the process of Brute Forcing the SnapChat My Eyes Only PinCode.
 ### Android
   - Open [Termux](https://github.com/termux/termux-app/releases/) and run the script with the following command:
 
-  ```
+  ```sh
   curl --progress-bar -o "$HOME/IntelliJ_MyEyes.sh" "https://raw.githubusercontent.com/arghya339/IntelliJ-MyEyes/refs/heads/main/IntelliJ_MyEyes.sh" && bash "$HOME/IntelliJ_MyEyes.sh"
   ```
   - Run:
@@ -41,11 +41,11 @@ Automate the process of Brute Forcing the SnapChat My Eyes Only PinCode.
   - Check MicrosoftPowerShell Version: ~ `$PSVersionTable`
   - Open [Microsoft PowerShell](https://github.com/PowerShell/PowerShell) Terminal (Admin) and run the script with the following command:
 
-  ```
+  ```pwsh
   Invoke-WebRequest -Uri https://raw.githubusercontent.com/arghya339/IntelliJ-MyEyes/refs/heads/main/IntelliJ_MyEyes.ps1 -OutFile "$env:USERPROFILE\Downloads\IntelliJ_MyEyes.ps1"
   ```
 
-  ```
+  ```pwsh
   Set-ExecutionPolicy Bypass -Scope Process -Force; & "$env:USERPROFILE\Downloads\IntelliJ_MyEyes.ps1"
   ```
 
