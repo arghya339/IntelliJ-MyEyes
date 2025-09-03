@@ -29,7 +29,8 @@ Automate the process of Brute Forcing the SnapChat My Eyes Only PinCode.
   ```
   bash IntelliJ_MyEyes.sh
   ```
-  > Note: Android script required superuser permission!
+  > [!NOTE]
+  > Android script required superuser permission!
 
 ### Windows 10/11
   - Open `Windows Terminal (Admin)`
@@ -49,10 +50,13 @@ Automate the process of Brute Forcing the SnapChat My Eyes Only PinCode.
   Set-ExecutionPolicy Bypass -Scope Process -Force; & "$env:USERPROFILE\Downloads\IntelliJ_MyEyes.ps1"
   ```
 
+> [!NOTE]
 > This script was tested on an Windows 11 Pro with MicrosoftPowerShell v7.4.6
 
-> Note: WindowsPowerShell (including latest v5.1.26100.2161) Not compatible with this script
+> [!WARNING]
+> WindowsPowerShell (including latest v5.1.26100.2161) Not compatible with this script
 
+> [!NOTE]
 > This script was tested on an Android device running Android 14 with AOSP based custom ROM with CorePatch LSPosed Module hook in System Framework with SnapChat v13.24.1.0 .
 
 ## Troubleshoot
@@ -60,7 +64,8 @@ Automate the process of Brute Forcing the SnapChat My Eyes Only PinCode.
 - [hashed_passcode_null_error](../../blob/main/docs/hashed_passcode_null_error.md)
 
 ## Safety!
-After My Eyes Only PinCode Recovery Complite, Please disabled Developer options from Device Settings. or uninstall SnapChat Debug APK and install SnapChat Release APK form Google PlayStore."
+> [!TIP]
+> After My Eyes Only PinCode Recovery Complite, Please disabled Developer options from Device Settings. or uninstall SnapChat Debug APK and install SnapChat Release APK form Google PlayStore."
 
 ## Dependencies
 ["Chocolatey"](https://github.com/chocolatey/choco) [[Apache 2.0]](https://github.com/chocolatey/choco/blob/develop/LICENSE), ["Java"](https://www.java.com/en/download/) [GFTC], ["Android SDK"](https://developer.android.com/tools) [Apache 2.0], ["Python"](https://www.python.org/downloads/) [PSF / GPL], ["SQLite"](https://github.com/sqlite/sqlite) [[BSD-style]](https://github.com/sqlite/sqlite/blob/master/LICENSE.md), ["Hashcat"](https://github.com/hashcat/hashcat) [[MIT]](https://github.com/hashcat/hashcat/blob/master/docs/license.txt), ["APKEditor"](https://github.com/REAndroid/APKEditor) [[Apache 2.0]](https://github.com/REAndroid/APKEditor/blob/master/LICENSE), ["makeDebuggable"](https://github.com/julKali/makeDebuggable) [Apache 2.0]"
