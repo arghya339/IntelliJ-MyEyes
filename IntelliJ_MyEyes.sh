@@ -77,7 +77,7 @@ clear  # Clear Terminal
 echo -e "$Green$eye$Reset"  # Print the eye shape with the specified foreground color
 echo ""  # Space
 
-Android=$(getprop ro.build.version.release)
+Android=$(getprop ro.build.version.release | cut -d. -f1)  # Get major Android version
 
 # --- Storage Permission Check Logic ---
 if ! ls /sdcard/ 2>/dev/null | grep -E -q "^(Android|Download)"; then
