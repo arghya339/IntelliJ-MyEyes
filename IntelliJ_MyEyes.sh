@@ -141,6 +141,7 @@ else
 fi
 meo="$HOME/meo"  # meo dir inside Termux $HOME dir
 installedPKG=$(pkg list-installed 2>/dev/null)  # list of installed pkg
+pkg update > /dev/null 2>&1  # It downloads latest package list with versions from Termux remote repository, then compares them to local (installed) pkg versions, and shows a list of what can be upgraded if they are different.
 outdatedPKG=$(apt list --upgradable 2>/dev/null)  # list of outdated pkg
 arch=$(getprop ro.product.cpu.abi)  # get device arch
 model=$(getprop ro.product.model)  # get device model
