@@ -391,9 +391,10 @@ if ($args.Length -eq 0) {
 $serial = $args[0]
 
 # --- adb dependent Variables ---
-$packagePath = adb -s $serial shell "pm path com.snapchat.android"  # "/data/app/com.snapchat.android-*/base.apk" or "^/data/app(/~[^/]+)?/com\.snapchat\.android.*$/base.apk" path
+#$packagePath = adb -s $serial shell "pm path com.snapchat.android"  # "/data/app/com.snapchat.android-*/base.apk" or "^/data/app(/~[^/]+)?/com\.snapchat\.android.*$/base.apk" path
 $CorePatchPath = adb -s $serial shell "pm path com.coderstory.toolkit"  # Core Patch LSPosed Module APK Path
-$apksPath = $packagePath | ForEach-Object { ($_ -split ":")[1] -replace "/[^/]+\.apk", "" } | Select-Object -Unique  # "/data/app*/com.snapchat.android*" or "^/data/app(/~[^/]+)?/com\.snapchat\.android.*$" path
+#$apksPath = $packagePath | ForEach-Object { ($_ -split ":")[1] -replace "/[^/]+\.apk", "" } | Select-Object -Unique  # "/data/app*/com.snapchat.android*" or "^/data/app(/~[^/]+)?/com\.snapchat\.android.*$" path
+$apksPath = (adb -s $serial shell "/system/bin/dumpsys package com.snapchat.android" | Select-String 'codePath').Line -replace '^.*codePath='
 $databasesOutput = & adb -s $serial shell run-as com.snapchat.android ls -d /data/data/com.snapchat.android/databases 2>$null  # SnapChat databases dir
 $meoriesOutput = & adb -s $serial shell run-as com.snapchat.android ls -f /data/data/com.snapchat.android/databases/memories.db 2>$null  # SnapChat memories.db file path
 $cpu_abi = adb -s $serial shell getprop ro.product.cpu.abi  # get device arch
@@ -414,7 +415,7 @@ function Get-DPICategory {
           {$_ -le 320} { return "xhdpi" }            # (Extra High Density)
           {$_ -le 440} { return "xxhdpi" }           # (Extra Extra High Density)
           {$_ -gt 440} { return "xxxhdpi" }          # (Extra Extra Extra High Density)
-          default { return "Unknown DPI Category" }
+          default { return "*dpi" }
       }
   }
   else {
