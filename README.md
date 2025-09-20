@@ -22,7 +22,7 @@ Automate the process of Brute Forcing the SnapChat My Eyes Only PinCode.
 ### Android
   - Open [Termux](https://github.com/termux/termux-app/releases/) and type following command then press `Enter` key twice:
   ```sh
-  pkg update && pkg install --only-upgrade apt bash -y
+  pkg update && pkg install --only-upgrade apt bash coreutils openssl -y
   ```
   run the script with the following command:
 
