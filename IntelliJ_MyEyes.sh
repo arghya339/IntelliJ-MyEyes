@@ -461,7 +461,7 @@ if su -c "ls -l /data/data/com.snapchat.android/databases/memories.db" >/dev/nul
   # --- Validate and display result ---
   if [ ${#pincode} -eq 4 ]; then
     rm -f "$hashes"
-    echo -e "\033[1;92;47m[****] Cracked My Eyes Only PinCode: [$pincode]\033[0m"
+    echo -e "\033[1;92;100m[****] Cracked My Eyes Only PinCode: [$pincode]\033[0m"
     
     if [ "$(su -c 'getenforce 2>/dev/null')" = "Enforcing" ]; then
       su -c "setenforce 0"  # set SELinux to Permissive mode to unblock unauthorized operations
