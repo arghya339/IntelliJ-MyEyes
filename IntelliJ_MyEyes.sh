@@ -256,12 +256,27 @@ fi
 confirmPrompt() {
   Prompt=${1}
   Selected=${2:-0}  # :- set value as 0 if unset
+  maxLen=50
+  
+  # breaks long prompts into multiple lines (50 characters per line)
+  lines=()  # empty array
+  while [ -n "$Prompt" ]; do
+    lines+=("${Prompt:0:$maxLen}")  # take first 50 characters from $Prompt starting at index 0
+    Prompt="${Prompt:$maxLen}"  # removes first 50 characters from $Prompt by starting at 50 to 0
+  done
+  
+  # print all-lines except last-line
+  last_line_index=$(( ${#lines[@]} - 1 ))  # ${#lines[@]} = number of elements in lines array
+  for (( i=0; i<last_line_index; i++ )); do
+    echo "${lines[i]}"
+  done
+  last_line="${lines[$last_line_index]}"
   
   echo -ne '\033[?25l'  # Hide cursor
   while true; do
     echo -ne "\r\033[K"  # n=noNewLine r=returnCursorToStartOfLine \033[K=clearLine
-    echo -ne "$Prompt "
-    [ $Selected -eq 0 ] && echo -ne "$whiteBG<Yes>$Reset <No>" || echo -ne "<Yes> $whiteBG<No>$Reset"  # highlight selected bt with white bg
+    echo -ne "$last_line "
+    [ $Selected -eq 0 ] && echo -ne "${whiteBG}➤ <Yes> $Reset   <No>" || echo -ne "  <Yes>  ${whiteBG}➤ <No> $Reset"  # highlight selected bt with white bg
 
     read -rsn1 key
     case $key in
