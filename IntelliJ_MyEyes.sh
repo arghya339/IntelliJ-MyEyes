@@ -441,7 +441,7 @@ if su -c "ls -l /data/data/com.snapchat.android/databases/memories.db" >/dev/nul
     termux-open-url "https://github.com/arghya339/IntelliJ-MyEyes/blob/main/docs%2Fhashed_passcode_null_error.md"  # open hashed_passcode_null_error docs if fetched hashed passcode is null
     exit 1  # Terminate script execution
   else
-    echo -e "\033[1;30;47m[####] Fetched hashed PassCode: [$hashes]\033[0m"
+    echo -e "\033[1;30;47m[####] Fetched hashed PassCode: [$(cat $hashes)]\033[0m"
   fi
   
   # --- Brute-force the hash ---
