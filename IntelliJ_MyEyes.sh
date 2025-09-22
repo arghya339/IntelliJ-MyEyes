@@ -59,8 +59,10 @@ comment
 Green="\033[92;1m"
 Red="\033[91m"
 Blue="\033[94m"
+Cyan="\033[96m"
 White="\033[37m"
 Yellow="\033[93m"
+whiteBG="\e[47m\e[30m"
 Reset="\033[0m"
 
 # Construct the eye shape using string concatenation
@@ -74,8 +76,7 @@ eye=$(cat <<'EOF'
 EOF
 )
 clear  # Clear Terminal
-echo -e "$Green$eye$Reset"  # Print the eye shape with the specified foreground color
-echo ""  # Space
+echo -e "$Green$eye$Reset\n"  # Print the eye shape with the specified foreground color
 
 Android=$(getprop ro.build.version.release | cut -d. -f1)  # Get major Android version
 
@@ -109,17 +110,15 @@ if su -c "id" >/dev/null 2>&1; then
 # -c allows you to run a single command as root without opening an interactive root shell.
   echo -e "$good SU permission is granted."
 else
-  echo -e "$bad SU permission is not granted."
+  echo -e "$bad SU permission is not granted!"
   echo -e "$notice Please open the Magisk/KernelSU/APatch app and manually grant root permissions to Termux."
   return 1
 fi
 
 # --- Checking Internet Connection ---
 if ! ping -c 1 -W 2 8.8.8.8 >/dev/null 2>&1 ; then
-    echo -e "$bad Oops! No Internet Connection available.\n$notice Connect to the Internet and try again later."
-    return 1
-else
-  echo -e "$good Internet connection available."
+  echo -e "$bad Oops! No Internet Connection available.\n$notice Connect to the Internet and try again later."
+  return 1
 fi
 # Downloading latest IntelliJ_MyEyes.sh file from GitHub
 curl -sL -o "$HOME/IntelliJ_MyEyes.sh" "https://raw.githubusercontent.com/arghya339/IntelliJ-MyEyes/refs/heads/main/IntelliJ_MyEyes.sh"
@@ -253,28 +252,35 @@ else
   fi
 fi
 
-# Colored prompt function
-Write_ColoredPrompt() {
-    local message="$1"
-    local color="$2"
-    local prompt_message="$3"
-    
-    local color_code reset_code
-    reset_code=$(printf '\033[0m')
-    
-    case "$color" in
-        red) color_code=$(printf '\033[31m') ;;
-        green) color_code=$(printf '\033[32m') ;;
-        yellow) color_code=$(printf '\033[33m') ;;
-        blue) color_code=$(printf '\033[34m') ;;
-        *) color_code="$reset_code" ;;
-    esac
+# Y/n prompt function
+confirmPrompt() {
+  Prompt=${1}
+  Selected=${2:-0}  # :- set value as 0 if unset
+  
+  echo -ne '\033[?25l'  # Hide cursor
+  while true; do
+    echo -ne "\r\033[K"  # n=noNewLine r=returnCursorToStartOfLine \033[K=clearLine
+    echo -ne "$Prompt "
+    [ $Selected -eq 0 ] && echo -ne "$whiteBG<Yes>$Reset <No>" || echo -ne "<Yes> $whiteBG<No>$Reset"  # highlight selected bt with white bg
 
-    printf "%s%s %s%s" "$color_code" "$message" "$prompt_message" "$reset_code" >&2
-    read -r input
-    printf "%s" "$input"
+    read -rsn1 key
+    case $key in
+      $'\E')
+      # /bin/bash -c 'read -r -p "Type any ESC key: " input && printf "You Entered: %q\n" "$input"'  # q=safelyQuoted
+        read -rsn2 -t 0.1 key2  # -r=readRawInput -s=silent(noOutput) -t=timeout -n2=readTwoChar | waits upto 0.1s=100ms to read key 
+        case $key2 in 
+          '[C') Selected=1 ;;  # right arrow key
+          '[D') Selected=0 ;;  # left arrow key
+        esac
+        ;;
+      [Yy]*) Selected=0 ;;
+      [Nn]*) Selected=1 ;;
+      "") break ;;  # Enter key
+    esac
+  done
+  echo -e '\033[?25h' # Show cursor
+  return $Selected  # return Selected int index from this fun
 }
-question_mark="[?]"
 
 # --- Check if SnapChat is installed ---
 if [ -n "$package" ]; then
@@ -283,27 +289,24 @@ else
 
   echo -e "$bad SnapChat is not installed on this device!"
   echo -e "$notice Please manually install it from the Play Store."
-  # open the Play Store page for SnapChat
-  termux-open-url "https://play.google.com/store/apps/details?id=com.snapchat.android"
+  termux-open-url "https://play.google.com/store/apps/details?id=com.snapchat.android"  # open the Play Store page for SnapChat
   su -c "input tap 540 590"  # tap on install button. x540, y590
   
   # --- Prompt the user for input ---
-  userInput=$(Write_ColoredPrompt $question_mark "yellow" "Are you sure you have already installed the SnapChat app from PlayStore on your $model device? (Yes/No) ")
+  confirmPrompt "Have you installed Snapchat app from PlayStore on your $model device?" && userInput=Yes || userInput=No
   # Check the user's input
   case "$userInput" in
       [Yy]*) echo -e "$running Proceeding.." ;;
       [Nn]*)
-          echo -e "$bad Please manually install SnapChat app from PlayStore on your $model device then rerun the script again."
+          echo -e "$bad Please manually install SnapChat app from PlayStore on your $model device, then rerun the script again."
           # Open SnapChat app page on Play Store
           termux-open-url "https://play.google.com/store/apps/details?id=com.snapchat.android"
           exit 1
           ;;
-      *) echo -e "$info ${Blue}Invalid input. Please enter Yes or No.${Reset}" ;;
   esac
 
 fi
 
-# --- install dependency ---
 # --- Installing proot-distro in Termux ---
 pkill dpkg && yes | dpkg --configure -a  # Forcefully kill dpkg process and configure dpkg
 if [ ! -f "$PREFIX/bin/proot-distro" ]; then
@@ -314,7 +317,6 @@ else
 fi
 
 # --- installing the Ubuntu distribution using proot-distro ---
-# Check if Ubuntu is already installed via proot-distro
 if ! ls "$PREFIX/var/lib/proot-distro/installed-rootfs/" 2>/dev/null | grep -iq "ubuntu" && [ -f "$PREFIX/bin/proot-distro" ]; then
   echo -e "$running Installing Ubuntu using proot-distro.."
   proot-distro install ubuntu > /dev/null 2>&1  # discarding output
@@ -348,7 +350,7 @@ else
 fi
 
 # --- Prompt the user for input ---
-userInput=$(Write_ColoredPrompt $question_mark "yellow" "Are you sure you have already logged into your SnapChat account in the SnapChat app on your $model device? (Yes/No) ")
+confirmPrompt "Is your Snapchat account already logged in on your $model device?" && userInput=Yes || userInput=No
 # Check the user's input
 case "$userInput" in
     [Yy]*) echo -e "$running Proceeding.." ;;
@@ -358,7 +360,6 @@ case "$userInput" in
         su -c "monkey -p com.snapchat.android -c android.intent.category.LAUNCHER 1 > /dev/null 2>&1"
         exit 1
         ;;
-    *) echo -e "$info ${Blue}Invalid input. Please enter Yes or No.${Reset}" ;;
 esac
 
 # --- Download SQLite Binary ---
@@ -375,7 +376,7 @@ fi
 
 # --- Check SQLite exist on SnapChat /data/ dir ---
 if su -c "ls -l '/data/data/com.snapchat.android/sqlite'" >/dev/null 2>&1; then
-  echo -e "$good SQLite Binary exist on SnapChat /data/ dir."
+  echo -e "$good SQLite Binary exist on ${Cyan}/data/data/com.snapchat.android/${Reset} dir."
   # --- Give execute (--x) permission to SQLite Binary
   echo -e "$running Give execute (--x) permission to SQLite Binary.."
   su -c "chmod +x /data/data/com.snapchat.android/sqlite"
@@ -472,31 +473,26 @@ if su -c "ls -l /data/data/com.snapchat.android/databases/memories.db" >/dev/nul
     fi
     
     echo -e "${Green}Star & Fork me on GitHub..${Reset}"
-    # Open GitHub URL
-    termux-open-url "https://github.com/arghya339/IntelliJ-MyEyes"
+    termux-open-url "https://github.com/arghya339/IntelliJ-MyEyes"  # Open GitHub URL
     sleep 0.5  # 0.5 seconds = 500 milliseconds
     echo -e "${Green}Donation: PayPal/@arghyadeep339${Reset}"
-    # Open PayPal URL
-    termux-open-url "https://www.paypal.com/paypalme/arghyadeep339"
+    termux-open-url "https://www.paypal.com/paypalme/arghyadeep339"  # Open PayPal URL
     sleep 0.5  # 0.5 seconds = 500 milliseconds
     echo -e "${Green}Subscribe: YouTube/@MrPalash360${Reset}"
-    # Open YouTube URL for subscription
-    termux-open-url "https://www.youtube.com/channel/UC_OnjACMLvOR9SXjDdp2Pgg/videos?sub_confirmation=1"
+    termux-open-url "https://www.youtube.com/channel/UC_OnjACMLvOR9SXjDdp2Pgg/videos?sub_confirmation=1"  # Open YouTube URL for subscription
     #sleep 0.5  # 0.5 seconds = 500 milliseconds
     #echo -e "${Green}Follow: Telegram${Reset}"
-    # Open Telegram update channel URL
-    #termux-open-url "https://t.me/MrPalash360"
+    #termux-open-url "https://t.me/MrPalash360"  # Open Telegram update channel URL
     #sleep 0.5  # 0.5 seconds = 500 milliseconds
     #echo -e "${Green}Join: Telegram${Reset}"
-    # Open Telegram discussion channel URL
-    #termux-open-url "https://t.me/MrPalash360Discussion"
-
+    #termux-open-url "https://t.me/MrPalash360Discussion"  # Open Telegram discussion channel URL
+  
   else 
     
-    echo -e "$bad Failed to crack PinCode using HashCat."
+    echo -e "$bad Failed to crack PinCode using HashCat!"
     
     # --- Prompt the user for input ---
-    userInput=$(Write_ColoredPrompt $question_mark "yellow" "Did you find any bugs in this script? (Yes/No) ")
+    confirmPrompt "Did you find any bugs in this script?" && userInput=Yes || userInput=No
     # Check the user's input
     case "$userInput" in
         [Yy]*)
@@ -504,35 +500,28 @@ if su -c "ls -l /data/data/com.snapchat.android/databases/memories.db" >/dev/nul
             echo -e "$running Wait, creating a new bug reporting template using your keywords.."
   
             # Ask user to describe the bug
-            issue_description=$(Write_ColoredPrompt $question_mark "yellow" "Please describe what's not working in this script? (Write here..) ")
+            read -r -p "Please describe what's not working in this script? " issue_description
 
             # Open the GitHub issue page with prefilled title and body
-            termux-open-url "https://github.com/arghya339/IntelliJ-MyEyes/issues/new?title=Bug&body=$issue_description"
+            termux-open-url "https://github.com/arghya339/IntelliJ-MyEyes/issues/new?title=Bug&body=${issue_description}"
         
             echo "🖤 Thanks for reporting!"
             ;;
         [Nn]*) echo -e "$running Proceeding.." ;;
-        *)
-            # If user provides an invalid input
-            echo -e "$info ${Blue}Invalid input. Please enter Yes or No.${Reset}"
-            ;;
     esac
-    proot-distro login ubuntu -- /bin/bash -c "rm -rf '$potfile' '$hashed_passcode_file'"
+    rm -f "$hashes"
     exit 1
     
   fi
 
-  # --- Cleanup Hashcat reqired files ---
-  proot-distro login ubuntu -- /bin/bash -c "rm -rf '$potfile' '$hashed_passcode_file'"
-
-elif [ ! su -c ls -l /data/data/com.snapchat.android/databases/memories.db ]; then
+elif ! su -c "ls -l /data/data/com.snapchat.android/databases/memories.db" 2>/dev/null; then
   # File not found
-  echo -e "$bad memories.db file not found in /data/data/com.snapchat.android/databases dir on $model device!"
-  echo -e "$question Are you sure 'My Eyes Only' SnapChat features are turned on in the $model device?"
+  echo -e "$bad memories.db file not found in SnpChat ${Cyan}/data/data/com.snapchat.android/databases${Reset} dir on $model device!"
+  echo -e "[?] Have you enabled Snapchat's 'My Eyes Only' feature on your $model device?"
 fi
 
 # --- Prompt the user for input ---
-userInput=$(Write_ColoredPrompt $question_mark "yellow" "Do you want to rerun this script again? (Yes/No) ")
+confirmPrompt "Do you want to rerun this script again?" && userInput=Yes || userInput=No
 # Check the user's input
 case "$userInput" in
     [Yy]*)
@@ -545,14 +534,13 @@ case "$userInput" in
     [Nn]*)
         # If user says No, proceed with purging script related files
         echo -e "$info Proceeding with purge IntelliJ MyEyes script related files.."
-        su -c "rm -rf /data/data/com.snapchat.android/sqlite"
-        echo "♥️ Thanks for using this script. Regards, @Arghya"
+        su -c "rm -f /data/data/com.snapchat.android/sqlite"
+        echo "♥️ Thanks for using this script! Regards, @Arghya"
         ;;
-    *) echo -e "$info ${Blue}Invalid input. Please enter Yes or No.${Reset}" ;;
 esac
 
 # --- Prompt the user for input ---
-userInput=$(Write_ColoredPrompt $question_mark "yellow" "Do you want to remove this script-related dependency? (Yes/No) ")
+confirmPrompt "Do you want to remove this script-related dependency?" && userInput=Yes || userInput=No
 # Check the user's input
 case "$userInput" in
     [Yy]*)
@@ -570,7 +558,6 @@ case "$userInput" in
     [Nn]*)
         echo -e "$info Proceeding without removing script-related dependencies!"
         ;;
-    *) echo -e "$info ${Blue}Invalid input. Please enter Yes or No.${Reset}" ;;
 esac
 
 # --- Developer Info ---
