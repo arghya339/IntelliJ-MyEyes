@@ -164,7 +164,8 @@ pkgInstall() {
     pkgUpdate "$pkg"
   else
     echo -e "$running Installing $pkg pkg.."
-    pkg install "$pkg" -y > /dev/null 2>&1
+    output=$(pkg install "$pkg" -y 2>/dev/null)
+    echo "$output" | grep -q "dpkg was interrupted" 2>/dev/null && { yes "N" | dpkg --configure -a; yes "N" | pkg install "$pkg" -y > /dev/null 2>&1; }
   fi
 }
 
@@ -325,8 +326,7 @@ fi
 # --- Installing proot-distro in Termux ---
 pkill dpkg && yes | dpkg --configure -a  # Forcefully kill dpkg process and configure dpkg
 if [ ! -f "$PREFIX/bin/proot-distro" ]; then
-  echo -e "$running Installing proot-distro.."
-  pkg install proot-distro -y > /dev/null 2>&1  # discarding output
+  pkgInstall "proot-distro"  # proot-distro install
 else
   echo -e "$good proot-distro pkg already installed inside Termux."
 fi
