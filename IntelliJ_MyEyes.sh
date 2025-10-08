@@ -288,8 +288,8 @@ confirmPrompt() {
           '[D') Selected=0 ;;  # left arrow key
         esac
         ;;
-      [Yy]*) Selected=0 ;;
-      [Nn]*) Selected=1 ;;
+      [Yy]*) Selected=0; break ;;
+      [Nn]*) Selected=1; break ;;
       "") break ;;  # Enter key
     esac
   done
