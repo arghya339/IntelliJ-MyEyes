@@ -324,7 +324,6 @@ else
 fi
 
 # --- Installing proot-distro in Termux ---
-pkill dpkg && yes | dpkg --configure -a  # Forcefully kill dpkg process and configure dpkg
 if [ ! -f "$PREFIX/bin/proot-distro" ]; then
   pkgInstall "proot-distro"  # proot-distro install
 else
