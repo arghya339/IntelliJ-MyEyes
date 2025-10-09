@@ -19,7 +19,7 @@ Automate the process of Brute Forcing the SnapChat My Eyes Only PinCode.
 - Latest Microsoft PowerShell (and you can check PowerShell Version uisng following command ~ `$PSVersionTable`)
 
 ## Usage
-### Android
+### ![Android](https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=android&logoColor=white)
   - Open [Termux](https://github.com/termux/termux-app/releases/) and type following command then press `Enter` key twice:
   ```sh
   pkg update && pkg install --only-upgrade apt bash coreutils openssl -y
@@ -36,7 +36,7 @@ Automate the process of Brute Forcing the SnapChat My Eyes Only PinCode.
   > [!NOTE]
   > Android script required superuser permission!
 
-### Windows 10/11
+### ![Windows](https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white)
   - Open `Windows Terminal (Admin)`
   - Install Microsoft PowerShell on Windows using winget (Windows built in package manager): ~ `winget install Microsoft.PowerShell --accept-source-agreements --silent --force`
   - Check MsPS Verison ~ `pwsh -v`
