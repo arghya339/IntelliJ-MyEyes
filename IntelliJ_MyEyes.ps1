@@ -101,7 +101,7 @@ if (!(Test-Path $meo)) {
   mkdir $meo -Force
 }
 # $potfile = Join-Path $meo "hashcat-6.2.6\hashcat.profile"  # $env:USERPROFILE\meo\hashcat.potfile file, Hashcat store Craked Passcode in this file for Later use
-$potfile = "C:\tools\hashcat-6.2.6\hashcat.potfile"  # hashcat.potfile refers to hashcat.password list file
+$potfile = "C:\tools\hashcat-7.1.2\hashcat.potfile"  # hashcat.potfile refers to hashcat.password list file
 $hashed_passcode_file = Join-Path $meo "hashed_passcode.txt"  # $env:USERPROFILE\meo\hashed_passcode.txt file
 $pullDir = Join-Path $meo "snapchat_apks"  # $env:USERPROFILE\meo\snapchat_apks dir (apks pull dir)
 $zipFilePath = Join-Path $meo "snapchat.zip"  # snapchat.zip file path
@@ -180,10 +180,10 @@ foreach ($dependency in @("choco", "java", "jdk", "android-sdk", "python", "hash
       # Check for Hashcat
       "hashcat" {
           try {
-              $hashcatPath = "C:\tools\hashcat-6.2.6\hashcat.exe"
+              $hashcatPath = "C:\tools\hashcat-7.1.2\hashcat.exe"
               if (Test-Path $hashcatPath) {
                   $version = & $hashcatPath --version 2>&1
-                  if ($version -match "v6\.2\.6") {
+                  if ($version -match "v7\.1\.2") {
                       $installed = $true
                       Write-Host "[+]" -ForegroundColor Green "Hashcat is already installed and verified (Version: $version)."
                   } else {
@@ -500,22 +500,22 @@ function Write-ColoredPrompt {
 }
 
 # --- Prompt the user for input ---
-$userInput = Write-ColoredPrompt -Message "[?]" -ForegroundColor Yellow -PromptMessage "Are you sure you have already installed SnapChat app form PlayStore on Your $product_model device? (Yes/No)"
+$userInput = Write-ColoredPrompt -Message "[?]" -ForegroundColor Yellow -PromptMessage "Have you installed Snapchat app from PlayStore on your $product_model device? (Yes/No)"
 # Check the user's input
 if ($userInput -in @("Yes", "yes", "Y", "y")) {
   Write-Host "[+]" -ForegroundColor Green "Proceeding..."
 }
 elseif ($userInput -in @("No", "no", "N", "n")) {
-  Write-Host "[x]" -ForegroundColor Red "Please manually install SnapChat app form PlayStore on your $product_model device then rerun script again..."
+  Write-Host "[x]" -ForegroundColor Red "Please manually install SnapChat app from PlayStore on your $product_model device, then rerun the script again."
   adb -s $serial shell am start -a android.intent.action.VIEW -d "market://details?id=com.snapchat.android" 2>$null
   return 1
 }
 else {
-  Write-Host "[i]" -ForegroundColor Blue "Invalid input. Please enter Yes or No."
+  Write-Host "[i]" -ForegroundColor Blue "Invalid input! Please enter Yes or No."
 }
 
 # --- Use the custom function to prompt the user ---
-$userInput = Write-ColoredPrompt -Message "[?]" -ForegroundColor Yellow -PromptMessage "Are you sure you have already turned on the 'Memories Backup' feature in the Snapchat app? (Yes/No)"
+$userInput = Write-ColoredPrompt -Message "[?]" -ForegroundColor Yellow -PromptMessage "Have you already turned on the 'Memories Backup' feature in the Snapchat app? (Yes/No)"
 # Check the user's input
 if ($userInput -in @("Yes", "yes", "Y", "y")) {
   Write-Host "[+]" -ForegroundColor Green "Proceeding..."
@@ -538,12 +538,12 @@ if ($userInput -in @("Yes", "yes", "Y", "y")) {
   Write-Host "[x]" -ForegroundColor Red "Please rerun script again, when 'Memories Backup' are complited..."
   return 1
 } else {
-  Write-Host "[i]" -ForegroundColor Blue "Invalid input. Please enter Yes or No."
+  Write-Host "[i]" -ForegroundColor Blue "Invalid input! Please enter Yes or No."
 }
 
 # --- Check if the Snapchat Debug APK exists ---
 if ($databasesOutput -ne "/data/data/com.snapchat.android/databases") {
-    Write-Host "[i]" -ForegroundColor Blue "This SnapChat app is not Debuggable. You need a Debug build of the app to proceed."
+    Write-Host "[i]" -ForegroundColor Blue "This SnapChat app is not Debuggable! You need a Debug build of the app to proceed."
 
     # --- Create a directory to store the extracted APKs and others files ---
     if (!(Test-Path $pullDir)) {
@@ -571,7 +571,7 @@ if ($databasesOutput -ne "/data/data/com.snapchat.android/databases") {
             Write-Host "[x]" -ForegroundColor Red "Failed to pull APKs. Error: $_"
           }
       } elseif ($apksPath -notlike "/data/app*/com.snapchat.android*") {
-          Write-Host "[x]" -ForegroundColor Red "APKs path is empty or not specified. Cannot proceed with pulling APKs."
+          Write-Host "[x]" -ForegroundColor Red "APKs path is empty or not specified! Cannot proceed with pulling APKs."
       }
       $requiredApks = @(
         (Join-Path $pullDir "base.apk"),
@@ -663,12 +663,12 @@ if ($databasesOutput -ne "/data/data/com.snapchat.android/databases") {
         Write-Host "[~]" -ForegroundColor White "Merge Split .apks to Standalone .apk..."
         java -jar $targetFile m -i $apksFilePath -o $apkFilePath *> $null  # to discard output.
       } elseif (!(Test-Path $apksFilePath)) {
-        Write-Host "[i]" -ForegroundColor Blue "snapchat.apks not found."
+        Write-Host "[i]" -ForegroundColor Blue "snapchat.apks not found!"
       } elseif (Test-Path $apkFilePath) {
         Write-Host "[+]" -ForegroundColor Green "Successfully Merge Split to Standalone apk: $apkFilePath"
         Remove-Item -Path $apksFilePath -Force
       } else {
-        Write-Host "[x]" -ForegroundColor Red "Failed to built APK form APKs."
+        Write-Host "[x]" -ForegroundColor Red "Failed to built APK form APKs!"
       }
 
       # --- create a keystore if it doesn't exist using keytool that comes with java 17 ---
@@ -690,13 +690,13 @@ if ($databasesOutput -ne "/data/data/com.snapchat.android/databases") {
         Write-Host "[~]" -ForegroundColor White "Signing the SnapChat APK..."
         apksigner sign --ks $meo\ks.keystore --ks-key-alias SnapchatKey --ks-pass pass:123456 --key-pass pass:123456 --out $signed_apkFilePath $apkFilePath
       } elseif (!(Test-Path $apkFilePath)) {
-        Write-Host "[i]" -ForegroundColor Blue "snapchat.apk not found."
+        Write-Host "[i]" -ForegroundColor Blue "snapchat.apk not found!"
       } elseif (Test-Path $signed_apkFilePath) {
         Write-Host "[+]" -ForegroundColor Green "SnapChat APK signed successfully: $signed_apkFilePath"
         Remove-Item -Path "$moe\snapchat_signed.apk.idsig" -Force
         Remove-Item -Path $apkFilePath -Force
       } else {
-        Write-Host "[x]" -ForegroundColor Red "Failed to signed the SnapChat APK."
+        Write-Host "[x]" -ForegroundColor Red "Failed to signed the SnapChat APK!"
       }
     
       <#
@@ -727,9 +727,9 @@ if ($databasesOutput -ne "/data/data/com.snapchat.android/databases") {
       Write-Host "[~]" -ForegroundColor White "Building the SnapChat Debug APK..."
       python $meo\makeDebuggable.py apk $signed_apkFilePath $debug_apkFilePath $meo\ks.keystore SnapchatKey 123456 > $null 2>&1  # to discard output.      
     } elseif (!(Test-Path $signed_apkFilePath)) {
-      Write-Host "[i]" -ForegroundColor Blue "snapchat_signed.apk not found."
+      Write-Host "[i]" -ForegroundColor Blue "snapchat_signed.apk not found!"
     } else {
-      Write-Host "[x]" -ForegroundColor Red "Failed to Build the SnapChat DeBug APK using SnapChat apk."
+      Write-Host "[x]" -ForegroundColor Red "Failed to Build the SnapChat DeBug APK using SnapChat apk!"
     }
 
     if (Test-Path $debug_apkFilePath) {
@@ -746,15 +746,15 @@ if ($databasesOutput -ne "/data/data/com.snapchat.android/databases") {
       }
 
       # install the modified SnapChat Debug apk using PlayStore Package Manager (com.androd.vending)
-      Write-Host "[~]" -ForegroundColor White "copy $debug_apkFilePath to device /data/local/tmp dir"
+      Write-Host "[~]" -ForegroundColor White "Copy $debug_apkFilePath to device /data/local/tmp dir"
       adb -s $serial push $debug_apkFilePath /data/local/tmp/
       Write-Host "[~]" -ForegroundColor White "Installing the SnapChat Debug APK using PlayStore Package Manager (com.androd.vending)..."
       adb -s $serial shell pm install --user 0 -i com.android.vending /data/local/tmp/snapchat_debug.apk
-      Write-Host "[~]" -ForegroundColor White "remove snapchat_debug.apk form device /data/local/tmp dir"
+      Write-Host "[~]" -ForegroundColor White "Remove snapchat_debug.apk form device /data/local/tmp dir"
       adb -s $serial shell rm /data/local/tmp/snapchat_debug.apk
 
     } else {
-      Write-Host "[x]" -ForegroundColor Red "SnapChat DeBug APK not found!."
+      Write-Host "[x]" -ForegroundColor Red "SnapChat DeBug APK not found!"
     }
     
 } elseif ($databasesOutput -eq "/data/data/com.snapchat.android/databases") {
@@ -780,40 +780,40 @@ if (!(Test-Path (Join-Path $meo "sqlite"))) {
 }
 
 # --- Prompt the user for input ---
-$userInput = Write-ColoredPrompt -Message "[?]" -ForegroundColor Yellow -PromptMessage "Are you sure you have already login your SnapChat account in SnapChat app on $product_model device? (Yes/No)"
+$userInput = Write-ColoredPrompt -Message "[?]" -ForegroundColor Yellow -PromptMessage "Is your Snapchat account already logged in on your $product_model device? (Yes/No)"
 # Check the user's input
 if ($userInput -in @("Yes", "yes", "Y", "y")) {
   Write-Host "[+]" -ForegroundColor Green "Proceeding..."
   
   if ($databasesOutput -eq "/data/data/com.snapchat.android/databases") {
-    Write-Host "[~]" -ForegroundColor White "push 'SQLite Binary for Android' to device /data/local/tmp/ dir..."
+    Write-Host "[~]" -ForegroundColor White "Push 'SQLite Binary for Android' to device /data/local/tmp/ dir..."
     adb -s $serial push $meo\sqlite /data/local/tmp/sqlite
-    Write-Host "[~]" -ForegroundColor White "finding SQLite binary on device /data/local/tmp/sqlite3 path..."
+    Write-Host "[~]" -ForegroundColor White "Finding SQLite binary on device /data/local/tmp/sqlite3 path..."
     adb -s $serial shell ls -l /data/local/tmp/sqlite
-    Write-Host "[~]" -ForegroundColor White "copy 'SQLite binary' form device /data/local/tmp to SnapChat /data/data/com.snapchat.android dir"
+    Write-Host "[~]" -ForegroundColor White "Copy 'SQLite binary' from device /data/local/tmp to SnapChat /data/data/com.snapchat.android dir"
     adb -s $serial shell "run-as com.snapchat.android cp /data/local/tmp/sqlite /data/data/com.snapchat.android/sqlite"
-    Write-Host "[~]" -ForegroundColor White "checking if SQLite binary exsit on SnapChat /data/data/com.snapchat.android dir..."
+    Write-Host "[~]" -ForegroundColor White "Checking if SQLite binary exsit on SnapChat /data/data/com.snapchat.android dir..."
     adb -s $serial shell "run-as com.snapchat.android ls -l /data/data/com.snapchat.android/sqlite"
-    Write-Host "[~]" -ForegroundColor White "give execute (--x) permision to 'SQLite binary'..."
+    Write-Host "[~]" -ForegroundColor White "Give execute (--x) permision to 'SQLite binary'..."
     adb -s $serial shell "run-as com.snapchat.android chmod +x /data/data/com.snapchat.android/sqlite"
-    Write-Host "[~]" -ForegroundColor White "checking if SQLite bin successfully grant execute (--x) permision or not..."
+    Write-Host "[~]" -ForegroundColor White "Checking if SQLite bin successfully grant execute (--x) permision or not..."
     adb -s $serial shell "run-as com.snapchat.android ls -l /data/data/com.snapchat.android/sqlite"
-    Write-Host "[~]" -ForegroundColor White "checking SQLite --version"
+    Write-Host "[~]" -ForegroundColor White "Checking SQLite --version"
     adb -s $serial shell "run-as com.snapchat.android /data/data/com.snapchat.android/sqlite --version"
-    Write-Host "[~]" -ForegroundColor White "removed sqlite bin form device /data/local/tmp dir"
+    Write-Host "[~]" -ForegroundColor White "Removed sqlite bin from device /data/local/tmp dir"
     adb -s $serial shell rm /data/local/tmp/sqlite
   } else {
-    Write-Host "[i]" -ForegroundColor Red "This SnapChat app is not Debuggable."
+    Write-Host "[i]" -ForegroundColor Red "This SnapChat app is not Debuggable!"
   }
 
 }
 elseif ($userInput -in @("No", "no", "N", "n")) {
-  Write-Host "[x]" -ForegroundColor Red "Please login your SnapChat accounts in SnapChat app first then rerun script again..."
+  Write-Host "[x]" -ForegroundColor Red "Please login your SnapChat account in the SnapChat app first, then rerun the script again."
   adb -s $serial shell monkey -p com.snapchat.android -c android.intent.category.LAUNCHER 1 > $null 2>&1  # Open SnapChat app
   return 1
 }
 else {
-  Write-Host "[i]" -ForegroundColor Blue "Invalid input. Please enter Yes or No."
+  Write-Host "[i]" -ForegroundColor Blue "Invalid input! Please enter Yes or No."
 }
 
 <#
@@ -862,7 +862,7 @@ if ($meoriesOutput -eq "/data/data/com.snapchat.android/databases/memories.db") 
   # --- Save the hashed passcode into a .txt file ---
   $hashed_passcode | Out-File -FilePath $hashed_passcode_file -Encoding ASCII
   if (!(Test-Path $hashed_passcode_file)) {
-    Write-Host "[x]" -ForegroundColor Red "Hashed passcode file not created."
+    Write-Host "[x]" -ForegroundColor Red "Hashed passcode file not created!"
     exit 1
   }
   
@@ -872,24 +872,24 @@ if ($meoriesOutput -eq "/data/data/com.snapchat.android/databases/memories.db") 
   }
   
   # --- Brute-force the hashed passcode ---
-  Write-Host "[~]" -ForegroundColor White "Brute forcing hash using Hashcat"
+  Write-Host "[~]" -ForegroundColor White "Brute forcing hash using Hashcat..."
   
-  Push-Location "C:\tools\hashcat-6.2.6"
+  Push-Location "C:\tools\hashcat-7.1.2"
   # Push-Location "$meo\hashcat-6.2.6"  # Change directory to hashcat-6.2.6
   try {
     # Capture the entire output and extract the pincode
-    $hashcatOutput = C:\tools\hashcat-6.2.6\hashcat.exe -m 3200 -a 3 $hashed_passcode_file "?d?d?d?d" --quiet --potfile-path $potfile --force 2>&1 | Out-String
+    $hashcatOutput = C:\tools\hashcat-7.1.2\hashcat.exe -m 3200 -a 3 $hashed_passcode_file "?d?d?d?d" --quiet --potfile-path $potfile --force 2>&1 | Out-String
     # Filter out the specific error message
     if ($hashcatOutput -notmatch "hiprtcCompileProgram is missing from HIPRTC shared library.") {
         Write-Host $hashcatOutput
     }
     $pincode = ($hashcatOutput | Select-String -Pattern ":(\d+)").Matches.Groups[1].Value
   } catch {
-    Write-Host "[x]" -ForegroundColor Red "Hashcat failed to execute. Error: $_"
+    Write-Host "[x]" -ForegroundColor Red "Hashcat failed to execute! Error: $_"
     exit 1
   }
   if ([string]::IsNullOrEmpty($pincode)) {
-    Write-Host "[x]" -ForegroundColor Red "Failed to crack the hashed passcode."
+    Write-Host "[x]" -ForegroundColor Red "Failed to crack the hashed passcode!"
     Write-Host "Hashcat Output: $hashcatOutput"  # Log the full output for debugging
     exit 1
   }
@@ -919,7 +919,7 @@ if ($meoriesOutput -eq "/data/data/com.snapchat.android/databases/memories.db") 
   adb -s $serial shell input touchscreen swipe 540 406 44 406 200  # swipe the horizontal scroll bar
   Start-Sleep -Milliseconds 2000  # Wait for 2000 milliseconds
   adb -s $serial shell input tap 714 406 992 481  # tap on 'My Eyes Only'
-  Write-Host "[i]" -ForegroundColor Blue "Please Open SnapChat app and try cracked 'My Eyes Only' Pincode: $pincode"
+  #Write-Host "[i]" -ForegroundColor Blue "Please Open SnapChat app and try cracked 'My Eyes Only' Pincode: $pincode"
 
   Start-Sleep -Milliseconds 500  # Wait for 500 milliseconds  
   # Check if pincode is valid
@@ -938,21 +938,21 @@ if ($meoriesOutput -eq "/data/data/com.snapchat.android/databases/memories.db") 
         }
     }
   } else {
-    Write-Host "Failed to extract pincode."
+    Write-Host "Failed to extract pincode!"
   }
 
   # --- Open a URL in the default browser ---
   if ($pincode.Length -eq 4) {
-    Write-Host -ForegroundColor Green "☆ Star & -{ Fork me..."
+    Write-Host -ForegroundColor Green "Star & Fork me on github..."
     Start-Process "https://github.com/arghya339/IntelliJ-MyEyes"
     Write-Host -ForegroundColor Green "Donation: PayPal/@arghyadeep339"
     Start-Process "https://www.paypal.com/paypalme/arghyadeep339"
     Write-Host -ForegroundColor Green "Subscribe: YouTube/@MrPalash360"
     Start-Process "https://www.youtube.com/channel/UC_OnjACMLvOR9SXjDdp2Pgg/videos?sub_confirmation=1"
-    Write-Host -ForegroundColor Green "Follow: Telegram"
-    Start-Process "https://t.me/MrPalash360"
-    Write-Host -ForegroundColor Green "Join: Telegram"
-    Start-Process "https://t.me/MrPalash360Discussion"
+    #Write-Host -ForegroundColor Green "Follow: Telegram"
+    #Start-Process "https://t.me/MrPalash360"
+    #Write-Host -ForegroundColor Green "Join: Telegram"
+    #Start-Process "https://t.me/MrPalash360Discussion"
   }
 
   # Define the ADB tap coordinates for each key
@@ -994,7 +994,7 @@ if ($meoriesOutput -eq "/data/data/com.snapchat.android/databases/memories.db") 
   }
   
   # --- Prompt the user for input ---
-  $userInput = Write-ColoredPrompt -Message "[?]" -ForegroundColor Yellow -PromptMessage "Are you want change My Eyes Only PinCode? (Yes/No)"
+  $userInput = Write-ColoredPrompt -Message "[?]" -ForegroundColor Yellow -PromptMessage "Do you want to change My Eyes Only passcode? (Yes/No)"
   # Check the user's input
   if ($userInput -in @("Yes", "yes", "Y", "y")) {
     Write-Host "[~]" -ForegroundColor White "Wait, Creating new My Eyes Only Passcode..."
@@ -1002,7 +1002,7 @@ if ($meoriesOutput -eq "/data/data/com.snapchat.android/databases/memories.db") 
     $newPasscode = Write-ColoredPrompt -Message "[?]" -ForegroundColor Yellow -PromptMessage "Please enter new My Eyes Only Passcode? (Only 4-digit are allowed!)"
     
     if ([string]::IsNullOrWhiteSpace($newPasscode)) {
-      Write-Host "[x]" -ForegroundColor Red "Error: Passcode cannot be empty."
+      Write-Host "[x]" -ForegroundColor Red "Error: Passcode cannot be empty!"
     } elseif ($newPasscode.Length -eq 4) {
     
       adb -s $serial shell am force-stop com.snapchat.android  # force stop app
@@ -1014,7 +1014,7 @@ if ($meoriesOutput -eq "/data/data/com.snapchat.android/databases/memories.db") 
       adb -s $serial shell input touchscreen swipe 540 406 44 406 200  # swipe the horizontal scroll bar
       Start-Sleep -Milliseconds 2000  # Wait for 2000 milliseconds
       adb -s $serial shell input tap 714 406 992 481  # tap on 'My Eyes Only'
-      Write-Host "[i]" -ForegroundColor Blue "Please Open SnapChat app and try cracked 'My Eyes Only' Pincode: $pincode"
+      #Write-Host "[i]" -ForegroundColor Blue "Please Open SnapChat app and try cracked 'My Eyes Only' Pincode: $pincode"
       
       Start-Sleep -Milliseconds 500  # Wait for 500 milliseconds
       adb -s $serial shell input tap 924 2246 1047 2301  # MyEyesOnly Options
@@ -1038,7 +1038,7 @@ if ($meoriesOutput -eq "/data/data/com.snapchat.android/databases/memories.db") 
             }
         }
       } else {
-        Write-Host "Failed to extract pincode."
+        Write-Host "Failed to extract pincode!"
       }
       
       Start-Sleep -Milliseconds 500  # Wait for 500 milliseconds  
@@ -1058,7 +1058,7 @@ if ($meoriesOutput -eq "/data/data/com.snapchat.android/databases/memories.db") 
             }
         }
       } else {
-        Write-Host "Failed to capture passcode."
+        Write-Host "Failed to capture passcode!"
       }
 
       Start-Sleep -Milliseconds 500  # Wait for 500 milliseconds  
@@ -1078,7 +1078,7 @@ if ($meoriesOutput -eq "/data/data/com.snapchat.android/databases/memories.db") 
             }
         }
       } else {
-        Write-Host "Failed to capture passcode."
+        Write-Host "Failed to capture passcode!"
       }
       
       Start-Sleep -Milliseconds 500  # Wait for 500 milliseconds
@@ -1090,13 +1090,13 @@ if ($meoriesOutput -eq "/data/data/com.snapchat.android/databases/memories.db") 
       Write-Host "[i]" -ForegroundColor "Remember: Your new My Eyes Only Passcode: $newPasscode"
 
     } elseif ($newPasscode.Length -ne 4) {
-      Write-Host "[x]" -ForegroundColor Red "Error: Passcode must be exactly 4 digits."
+      Write-Host "[x]" -ForegroundColor Red "Error: Passcode must be exactly 4 digits!"
     }
      
   } elseif ($userInput -in @("No", "no", "N", "n")) {
     Write-Host "[i]" -ForegroundColor Blue "Proceeding..."
   } else {
-    Write-Host "[i]" -ForegroundColor DarkRed "Invalid input. Please enter Yes or No."
+    Write-Host "[i]" -ForegroundColor DarkRed "Invalid input! Please enter Yes or No."
   }
   
   # After Brute force meo pin remove unnecessary files
@@ -1104,27 +1104,27 @@ if ($meoriesOutput -eq "/data/data/com.snapchat.android/databases/memories.db") 
   Remove-Item -Path $hashed_passcode_file -Force
 } else {
   Write-Host "[x]" -ForegroundColor Red "memories.db not found in /data/data/com.snapchat.android/databases dir on $product_model device!"
-  Write-Host "[?]"  -ForegroundColor Yellow "Are you sure 'My Eyes Only' SnapChat Features are turn on $product_model device?"
+  Write-Host "[?]"  -ForegroundColor Yellow "Have you enabled Snapchat's 'My Eyes Only' feature on your $product_model device?"
   exit 1
 }
 
 # --- Prompt the user for input ---
-$userInput = Write-ColoredPrompt -Message "[?]" -ForegroundColor Yellow -PromptMessage "Are you find any Bugs in this script? (Yes/No)"
+$userInput = Write-ColoredPrompt -Message "[?]" -ForegroundColor Yellow -PromptMessage "Did you find any bugs in this script? (Yes/No)"
 # Check the user's input
 if ($userInput -in @("Yes", "yes", "Y", "y")) {
-  Write-Host "[~]" -ForegroundColor White "Wait, Creating a new Bug reporting Template using your key words..."
+  Write-Host "[~]" -ForegroundColor White "Wait, creating a new bug reporting template using your keywords..."
   
-  $issue_description = Write-ColoredPrompt -Message "[?]" -ForegroundColor Yellow -PromptMessage "Please discribe whats not working in this script? (Write here...)"
+  $issue_description = Write-ColoredPrompt -Message "[?]" -ForegroundColor Yellow -PromptMessage "Please describe what's not working in this script? "
   Start-Process "https://github.com/arghya339/IntelliJ-MyEyes/issues/new?title=Bug&body=$issue_description."
 
 } elseif ($userInput -in @("No", "no", "N", "n")) {
   Write-Host "[i]" -ForegroundColor Blue "Thanks for using this script, Reguard @Arghya"
 } else {
-  Write-Host "[i]" -ForegroundColor DarkRed "Invalid input. Please enter Yes or No."
+  Write-Host "[i]" -ForegroundColor DarkRed "Invalid input! Please enter Yes or No."
 }
 
 # --- Prompt the user for input ---
-$userInput = Write-ColoredPrompt -Message "[?]" -ForegroundColor Yellow -PromptMessage "Are you want rerun this script again? (Yes/No)"
+$userInput = Write-ColoredPrompt -Message "[?]" -ForegroundColor Yellow -PromptMessage "Do you want to rerun this script again? (Yes/No)"
 # Check the user's input
 if ($userInput -in @("Yes", "yes", "Y", "y")) {
 
@@ -1139,12 +1139,12 @@ if ($userInput -in @("Yes", "yes", "Y", "y")) {
   Remove-Item -Path "$meo" -Recurse -Force
   Remove-Item -Path "$fullScriptPath" -Force
 } else {
-  Write-Host "[i]" -ForegroundColor DarkRed "Invalid input. Please enter Yes or No."
+  Write-Host "[i]" -ForegroundColor DarkRed "Invalid input! Please enter Yes or No."
 }
 
 
 # --- Prompt the user for input ---
-$userInput = Write-ColoredPrompt -Message "[?]" -ForegroundColor Yellow -PromptMessage "Are you want remove this script related dependency? (Yes/No)"
+$userInput = Write-ColoredPrompt -Message "[?]" -ForegroundColor Yellow -PromptMessage "Do you want to remove this script-related dependency? (Yes/No)"
 # Check the user's input
 if ($userInput -in @("Yes", "yes", "Y", "y")) {
 
@@ -1152,7 +1152,7 @@ if ($userInput -in @("Yes", "yes", "Y", "y")) {
   # Remove-Item -Recurse -Force C:\Program Files\7-Zip  # Uninstall 7z using PS
 
   choco uninstall hashcat -y  # Uninstall hashcat using chocolatey
-  Remove-Item -Recurse -Force C:\tools\hashcat-6.2.6  # Uninstall Hashcat using PS
+  Remove-Item -Recurse -Force C:\tools\hashcat-7.1.2  # Uninstall Hashcat using PS
 
   winget uninstall Python.Python.3.13  # Uninstall Python 3.13 using winget
   Remove-Item -Recurse -Force $env:USERPROFILE\AppData\Local\Programs\Python\Python313  # Uninstall Python313 using PS
@@ -1198,14 +1198,14 @@ if ($userInput -in @("Yes", "yes", "Y", "y")) {
 } elseif ($userInput -in @("No", "no", "N", "n")) {
   Write-Host "[i]" -ForegroundColor Blue "Proceeding without removing this script related dependency..."
 } else {
-  Write-Host "[i]" -ForegroundColor DarkRed "Invalid input. Please enter Yes or No."
+  Write-Host "[i]" -ForegroundColor DarkRed "Invalid input! Please enter Yes or No."
 }
 
 # --- Safety ---
-Write-Host "[x]" -ForegroundColor Red "Safety! After My Eyes Only PinCode Recovery Complite, Please disabled Developer options from Device Settings. `nor uninstall SnapChat Debug APK and install SnapChat Release APK form Google PlayStore."
-Write-Host "[i]" -ForegroundColor Blue "Methods to Turn Off USB Debugging Manually via Device Settings: Go to 'Settings' > Developer options > Toggle off 'USB Debugging'."
+Write-Host "[x]" -ForegroundColor Red "Safety! After My Eyes Only PinCode Recovery Complete, Please disabled Developer options from Device Settings. `nor uninstall SnapChat Debug APK and install SnapChat Release APK form Google PlayStore."
+Write-Host "[i]" -ForegroundColor Blue "Methods to Turn Off USB Debugging Manually via Device Settings: Go to Device 'Settings' > Developer options > Toggle off 'USB Debugging'."
 # --- Prompt the user for input ---
-$userInput = Write-ColoredPrompt -Message "[?]" -ForegroundColor Yellow -PromptMessage "Are you want install SnapChat Release APK form Google PlayStore? (Yes/No)"
+$userInput = Write-ColoredPrompt -Message "[?]" -ForegroundColor Yellow -PromptMessage "Do you want install SnapChat Release APK form Google PlayStore? (Yes/No)"
 # Check the user's input
 if ($userInput -in @("Yes", "yes", "Y", "y")) {
   Write-Host "[~]" -ForegroundColor White "Proceeding..."
@@ -1231,9 +1231,9 @@ if ($userInput -in @("Yes", "yes", "Y", "y")) {
   }
 
 } elseif ($userInput -in @("No", "no", "N", "n")) {
-  Write-Host "[x]" -ForegroundColor Red "WARNING! Proceeding without Safety..."
+  Write-Host "[x]" -ForegroundColor Red "WARNING! Proceeding without Safety step..."
 } else {
-  Write-Host "[i]" -ForegroundColor DarkRed "Invalid input. Please enter Yes or No."
+  Write-Host "[i]" -ForegroundColor DarkRed "Invalid input! Please enter Yes or No."
 }
 
 # --- Devoloper info ---
@@ -1245,5 +1245,5 @@ Write-Host "</>" -ForegroundColor DarkMagenta "Developer: @arghya339 (github.com
 Write-Host "[i]" -ForegroundColor Blue "External Dependencies: "Chocolatey" [Apache 2.0], "Java" [GFTC], "Android SDK" [Apache 2.0], "Python" [PSF / GPL], "SQLite" [BSD-style], "Hashcat" [MIT], "APKEditor" [Apache 2.0], "makeDebuggable" [Apache 2.0]"
 Write-Host "[i]" -ForegroundColor Blue "LICENSE: This script is licensed under the 'MIT' License."
 
-Write-Host "[~]" -ForegroundColor White "Are you want Close PowerShell Terminal? (Enter 'exit' to close)"
+Write-Host "[~]" -ForegroundColor White "Do you want Close PowerShell Terminal? (Enter 'exit' to close)"
 #########################################################################################################
