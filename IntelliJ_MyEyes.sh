@@ -275,9 +275,11 @@ confirmPrompt() {
   
   echo -ne '\033[?25l'  # Hide cursor
   while true; do
-    echo -ne "\r\033[K"  # n=noNewLine r=returnCursorToStartOfLine \033[K=clearLine
-    echo -ne "$last_line "
-    [ $Selected -eq 0 ] && echo -ne "${whiteBG}➤ <Yes> $Reset   <No>" || echo -ne "  <Yes>  ${whiteBG}➤ <No> $Reset"  # highlight selected bt with white bg
+    show_prompt() {
+      echo -ne "\r\033[K"  # n=noNewLine r=returnCursorToStartOfLine \033[K=clearLine
+      echo -ne "$last_line "
+      [ $Selected -eq 0 ] && echo -ne "${whiteBG}➤ <Yes> $Reset   <No>" || echo -ne "  <Yes>  ${whiteBG}➤ <No> $Reset"  # highlight selected bt with white bg
+    }; show_prompt
 
     read -rsn1 key
     case $key in
@@ -289,8 +291,8 @@ confirmPrompt() {
           '[D') Selected=0 ;;  # left arrow key
         esac
         ;;
-      [Yy]*) Selected=0; break ;;
-      [Nn]*) Selected=1; break ;;
+      [Yy]*) Selected=0; show_prompt; break ;;
+      [Nn]*) Selected=1; show_prompt; break ;;
       "") break ;;  # Enter key
     esac
   done
