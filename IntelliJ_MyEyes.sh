@@ -391,11 +391,10 @@ if ! su -c "ls -l '/data/data/com.snapchat.android/sqlite'" >/dev/null 2>&1; the
 fi
 
 # --- Check SQLite exist on SnapChat /data/ dir ---
-if su -c "ls -l '/data/data/com.snapchat.android/sqlite'" >/dev/null 2>&1; then
+if su -c "ls '/data/data/com.snapchat.android/sqlite'" >/dev/null 2>&1; then
   echo -e "$good SQLite Binary exist on ${Cyan}/data/data/com.snapchat.android/${Reset} dir."
   # --- Give execute (--x) permission to SQLite Binary
-  echo -e "$running Give execute (--x) permission to SQLite Binary.."
-  su -c "chmod +x /data/data/com.snapchat.android/sqlite"
+  su -c [ ! -x "/data/data/com.snapchat.android/sqlite" ] && { echo -e "$running Give execute (--x) permission to SQLite Binary.."; su -c "chmod +x /data/data/com.snapchat.android/sqlite"; } || echo -e "$good SQLite binary already has execute (--x) permissions."
   # --- Checking SQLite --version ---
   SQLiteVersion=$(su -c "/data/data/com.snapchat.android/sqlite --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -n 1")
   echo -e "$running sqlite --version → SQLite v$SQLiteVersion"
