@@ -178,6 +178,7 @@ pkgInstall "termux-am"  # termux am (activity manager) update
 pkgInstall "termux-am-socket"  # termux am socket (when run: am start -n activity ,termux-am take & send to termux-am-stcket and it's send to Termux Core to execute am command) update
 pkgInstall "inetutils"  # ping utils is provided by inetutils
 pkgInstall "util-linux"  # it provides: kill, killall, uptime, uname, chsh, lscpu
+pkgInstall "libsmartcols"  # a library from the util-linux pkg
 pkgInstall "curl"  # curl update
 pkgInstall "libcurl"  # curl lib update
 pkgInstall "jq"  # jq install/update
