@@ -219,7 +219,6 @@ else
       rm -f "$meo/setenforce0"
     fi
     su -c "rm -f '$filePath'"
-    fi
   fi
 fi
 
