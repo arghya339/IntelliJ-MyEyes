@@ -505,7 +505,7 @@ elif ! su -c "ls -l /data/data/com.snapchat.android/databases/memories.db" 2>/de
 fi
 
 # --- Prompt the user for input ---
-confirmPrompt "Do you want to rerun this script again?" && userInput=Yes || userInput=No
+confirmPrompt "Do you want to rerun this script again?" "1" && userInput=Yes || userInput=No
 # Check the user's input
 case "$userInput" in
     [Yy]*)
