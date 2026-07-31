@@ -768,7 +768,7 @@ if ($databasesOutput -eq "/data/data/com.snapchat.android/databases") {
 }
 
 # --- download 'SQLite Binary for Android' License: [BSD-style] ---
-if (!(Test-Path (Join-Path $meo "sqlite"))) {
+if (!(Test-Path (Join-Path $meo "sqlite3"))) {
   Write-Host "[~]" -ForegroundColor White "Downloading 'SQLite Binary for Android'..."
   # Check if $cpu_abi needs to be renamed
   if ($cpu_abi -eq "arm64_v8a") {
@@ -776,7 +776,7 @@ if (!(Test-Path (Join-Path $meo "sqlite"))) {
   } elseif ($cpu_abi -eq "armeabi_v7a") {
     $cpu_abi = "armeabi-v7a"
   }
-  Invoke-WebRequest -Uri https://github.com/arghya339/sqlite3-android/releases/download/all/sqlite-$cpu_abi -OutFile $meo\sqlite  # SQLite 3.47.2
+  Invoke-WebRequest -Uri https://raw.githubusercontent.com/arghya339/sqlite3-android/refs/heads/master/binary/$cpu_abi/sqlite3 -OutFile $meo\sqlite3  # SQLite 3.47.2
 }
 
 # --- Prompt the user for input ---
@@ -787,21 +787,21 @@ if ($userInput -in @("Yes", "yes", "Y", "y")) {
   
   if ($databasesOutput -eq "/data/data/com.snapchat.android/databases") {
     Write-Host "[~]" -ForegroundColor White "Push 'SQLite Binary for Android' to device /data/local/tmp/ dir..."
-    adb -s $serial push $meo\sqlite /data/local/tmp/sqlite
+    adb -s $serial push $meo\sqlite3 /data/local/tmp/sqlite3
     Write-Host "[~]" -ForegroundColor White "Finding SQLite binary on device /data/local/tmp/sqlite3 path..."
-    adb -s $serial shell ls -l /data/local/tmp/sqlite
+    adb -s $serial shell ls -l /data/local/tmp/sqlite3
     Write-Host "[~]" -ForegroundColor White "Copy 'SQLite binary' from device /data/local/tmp to SnapChat /data/data/com.snapchat.android dir"
-    adb -s $serial shell "run-as com.snapchat.android cp /data/local/tmp/sqlite /data/data/com.snapchat.android/sqlite"
+    adb -s $serial shell "run-as com.snapchat.android cp /data/local/tmp/sqlite3 /data/data/com.snapchat.android/sqlite3"
     Write-Host "[~]" -ForegroundColor White "Checking if SQLite binary exsit on SnapChat /data/data/com.snapchat.android dir..."
-    adb -s $serial shell "run-as com.snapchat.android ls -l /data/data/com.snapchat.android/sqlite"
+    adb -s $serial shell "run-as com.snapchat.android ls -l /data/data/com.snapchat.android/sqlite3"
     Write-Host "[~]" -ForegroundColor White "Give execute (--x) permision to 'SQLite binary'..."
-    adb -s $serial shell "run-as com.snapchat.android chmod +x /data/data/com.snapchat.android/sqlite"
+    adb -s $serial shell "run-as com.snapchat.android chmod +x /data/data/com.snapchat.android/sqlite3"
     Write-Host "[~]" -ForegroundColor White "Checking if SQLite bin successfully grant execute (--x) permision or not..."
-    adb -s $serial shell "run-as com.snapchat.android ls -l /data/data/com.snapchat.android/sqlite"
+    adb -s $serial shell "run-as com.snapchat.android ls -l /data/data/com.snapchat.android/sqlite3"
     Write-Host "[~]" -ForegroundColor White "Checking SQLite --version"
-    adb -s $serial shell "run-as com.snapchat.android /data/data/com.snapchat.android/sqlite --version"
+    adb -s $serial shell "run-as com.snapchat.android /data/data/com.snapchat.android/sqlite3 --version"
     Write-Host "[~]" -ForegroundColor White "Removed sqlite bin from device /data/local/tmp dir"
-    adb -s $serial shell rm /data/local/tmp/sqlite
+    adb -s $serial shell rm -f /data/local/tmp/sqlite3
   } else {
     Write-Host "[i]" -ForegroundColor Red "This SnapChat app is not Debuggable!"
   }
@@ -856,7 +856,7 @@ if (!(Test-Path (Join-Path $meo "hashcat-6.2.6"))) {
 if ($meoriesOutput -eq "/data/data/com.snapchat.android/databases/memories.db") {
   Write-Host "[+]" -ForegroundColor Green "memories.db found in /data/data/com.snapchat.android/databases dir on $product_model device."
 
-  $hashed_passcode = adb -s $serial shell "run-as com.snapchat.android /data/data/com.snapchat.android/sqlite /data/data/com.snapchat.android/databases/memories.db 'select hashed_passcode from memories_meo_confidential;'"
+  $hashed_passcode = adb -s $serial shell "run-as com.snapchat.android /data/data/com.snapchat.android/sqlite3 /data/data/com.snapchat.android/databases/memories.db 'select hashed_passcode from memories_meo_confidential;'"
   Write-Host "[####]" -ForegroundColor Black -BackgroundColor White "Fetched hashed passcode: [$hashed_passcode]"
   
   # --- Save the hashed passcode into a .txt file ---
@@ -1135,7 +1135,7 @@ if ($userInput -in @("Yes", "yes", "Y", "y")) {
 
 } elseif ($userInput -in @("No", "no", "N", "n")) {
   Write-Host "[i]" -ForegroundColor Blue "Proceeding with purge IntelliJ MyEyes script rleated files directory..."
-  adb -s $serial shell "run-as com.snapchat.android rm /data/data/com.snapchat.android/sqlite"
+  adb -s $serial shell "run-as com.snapchat.android rm -f /data/data/com.snapchat.android/sqlite3"
   Remove-Item -Path "$meo" -Recurse -Force
   Remove-Item -Path "$fullScriptPath" -Force
 } else {

@@ -232,19 +232,19 @@ case "$userInput" in
 esac
 
 # --- Download SQLite Binary ---
-if ! su -c "[ -f '/data/data/com.snapchat.android/sqlite' ]"; then
-  echo -e "$running Downloading SQLite Binary for Android from ${Blue}https://github.com/arghya339/sqlite3-android/releases/download/all/sqlite-$arch${Reset}.."
+if ! su -c "[ -f '/data/data/com.snapchat.android/sqlite3' ]"; then
+  echo -e "$running Downloading SQLite Binary for Android from ${Blue}https://raw.githubusercontent.com/arghya339/sqlite3-android/refs/heads/master/binary/$arch/sqlite3${Reset}.."
   while true; do
-    su -c "$PREFIX/bin/curl -L --progress-bar -C - -o '/data/data/com.snapchat.android/sqlite' 'https://github.com/arghya339/sqlite3-android/releases/download/all/sqlite-$arch'"
+    su -c "$PREFIX/bin/curl -L --progress-bar -C - -o '/data/data/com.snapchat.android/sqlite3' 'https://raw.githubusercontent.com/arghya339/sqlite3-android/refs/heads/master/binary/$arch/sqlite3'"
     [ $? -eq 0 ] && break || { echo -e "$notice Retrying in 5 seconds.." && sleep 5; }
   done
 fi
 
 # --- Check SQLite exist on SnapChat /data/ dir ---
-if su -c "[ -f '/data/data/com.snapchat.android/sqlite' ]"; then
+if su -c "[ -f '/data/data/com.snapchat.android/sqlite3' ]"; then
   echo -e "$good SQLite Binary exist on ${Cyan}/data/data/com.snapchat.android/${Reset} dir."
-  su -c [ ! -x "/data/data/com.snapchat.android/sqlite" ] && { echo -e "$running Give execute (--x) permission to SQLite Binary.."; su -c "chmod +x /data/data/com.snapchat.android/sqlite"; } || echo -e "$good SQLite binary already has execute (--x) permissions."
-  SQLiteVersion=$(su -c "/data/data/com.snapchat.android/sqlite --version" | awk '{print $1}')
+  su -c [ ! -x "/data/data/com.snapchat.android/sqlite3" ] && { echo -e "$running Give execute (--x) permission to SQLite Binary.."; su -c "chmod +x /data/data/com.snapchat.android/sqlite3"; } || echo -e "$good SQLite binary already has execute (--x) permissions."
+  SQLiteVersion=$(su -c "/data/data/com.snapchat.android/sqlite3 --version" | awk '{print $1}')
   echo -e "$running sqlite --version → SQLite v$SQLiteVersion"
 fi
 
@@ -298,7 +298,7 @@ tryMEO() {
 
 # --- Get the hashed PassCode ---
 if su -c "[ -f /data/data/com.snapchat.android/databases/memories.db ]"; then
-  su -c "/data/data/com.snapchat.android/sqlite /data/data/com.snapchat.android/databases/memories.db 'select hashed_passcode from memories_meo_confidential;'" > "$hashes"
+  su -c "/data/data/com.snapchat.android/sqlite3 /data/data/com.snapchat.android/databases/memories.db 'select hashed_passcode from memories_meo_confidential;'" > "$hashes"
   #  --- Check if $hashes is null ---
   if [ -z $(cat $hashes) ]; then
     echo -e "$bad Failed to fetched hashed PassCode using SQLite."
@@ -366,7 +366,7 @@ case "$userInput" in
     ;;
   No)
     echo -e "$info Proceeding with purge IntelliJ MyEyes script related files.."
-    su -c "rm -f /data/data/com.snapchat.android/sqlite"
+    su -c "rm -f /data/data/com.snapchat.android/sqlite3"
     echo "♥️ Thanks for using this script! Regards, @Arghya"
     ;;
 esac
