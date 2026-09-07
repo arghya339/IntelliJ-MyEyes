@@ -376,9 +376,9 @@ confirmPrompt "Do you want to remove this script-related dependency?" && userInp
 case "$userInput" in
   Yes)
     echo -e "$running Proceeding with removal of dependencies.."
-    pip uninstall bcrypt -y  # Uninstall bcrypt
-    pkgUninstall "rust"  # Uninstll rust
-    pkgUninstall "python"  # Uninstall python
+    pip uninstall bcrypt -y &>/dev/null  # Uninstall bcrypt
+    pkg uninstall rust -y &>/dev/null  # Uninstll rust
+    pkg uninstall python -y &>/dev/null  # Uninstall python
     ;;
   No)
     echo -e "$info Proceeding without removing script-related dependencies!"
